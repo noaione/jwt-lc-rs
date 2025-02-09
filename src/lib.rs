@@ -29,6 +29,7 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
     let encoded_data = utils::b64_encode_serde(data)?;
 
     let message = [encoded_header, encoded_data].join(".");
+    println!("message A: {:?}", message.as_bytes());
     let signature = signer.sign(message.as_bytes())?;
 
     Ok([message, signature].join("."))
@@ -50,11 +51,11 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
 ///
 /// Validators are used to validate the claims and the deserialized data. The validators are
 /// checked in order, and if any of them fail, the function will return an error.
-pub fn decode<D: DeserializeOwned, S: SigningAlgorithm, V: validator::Validator<D>>(
+pub fn decode<T: DeserializeOwned, S: SigningAlgorithm>(
     token: &str,
     signer: &S,
-    validator: &[V],
-) -> Result<TokenData<D>, crate::errors::Error> {
+    validator: &[impl validator::Validator],
+) -> Result<TokenData<T>, crate::errors::Error> {
     let (signature, message) = split_two(token)?;
     let (claims_or_data, header) = split_two(message)?;
 
@@ -70,7 +71,8 @@ pub fn decode<D: DeserializeOwned, S: SigningAlgorithm, V: validator::Validator<
     }
 
     // Validate signature
-    if !signer.verify(message.as_bytes(), signature.as_bytes())? {
+    let signature = utils::b64_decode(signature)?;
+    if !signer.verify(message.as_bytes(), &signature)? {
         return Err(errors::Error::InvalidSignature);
     }
 
@@ -78,14 +80,14 @@ pub fn decode<D: DeserializeOwned, S: SigningAlgorithm, V: validator::Validator<
     let claims = serde_json::from_slice::<ClaimsForValidation>(&claims_or_data)
         .map_err(errors::Error::DeserializeError)?;
     let data =
-        serde_json::from_slice::<D>(&claims_or_data).map_err(errors::Error::DeserializeError)?;
+        serde_json::from_slice::<T>(&claims_or_data).map_err(errors::Error::DeserializeError)?;
 
     // Validate claims
-    for v in validator.iter() {
+    for v in validator {
         // Validate claims part
         v.validate(&claims)?;
         // Validate actual data
-        v.validate_full(&data)?;
+        v.validate_full::<T>(&data)?;
     }
 
     // Success!

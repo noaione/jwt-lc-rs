@@ -41,7 +41,7 @@ impl SigningAlgorithm for HmacAlgorithm {
     }
 
     fn verify(&self, data: &[u8], signature: &[u8]) -> Result<bool, crate::errors::Error> {
-        let data = aws_lc_rs::hmac::sign(&self.key, data);
-        Ok(verify_slices_are_equal(signature, data.as_ref()).is_ok())
+        let tag = aws_lc_rs::hmac::sign(&self.key, data);
+        Ok(verify_slices_are_equal(signature, tag.as_ref()).is_ok())
     }
 }

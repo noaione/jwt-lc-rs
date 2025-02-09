@@ -2,17 +2,22 @@
 
 use std::collections::HashSet;
 
+use serde::de::DeserializeOwned;
+
 use crate::{is_subset, ClaimsForValidation, MaybeMultiString, TryParse};
 
 /// A trait for validating token data
-pub trait Validator<T> {
+pub trait Validator {
     /// The function to validate token data
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
     ) -> Result<(), crate::errors::ValidationError>;
 
-    fn validate_full(&self, data: &T) -> Result<(), crate::errors::ValidationError>;
+    fn validate_full<T: DeserializeOwned>(
+        &self,
+        data: &T,
+    ) -> Result<(), crate::errors::ValidationError>;
 }
 
 pub struct IssuerValidator {
@@ -27,7 +32,7 @@ impl IssuerValidator {
     }
 }
 
-impl<T> Validator<T> for IssuerValidator {
+impl Validator for IssuerValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -60,7 +65,10 @@ impl<T> Validator<T> for IssuerValidator {
         }
     }
 
-    fn validate_full(&self, _: &T) -> Result<(), crate::errors::ValidationError> {
+    fn validate_full<T: DeserializeOwned>(
+        &self,
+        _: &T,
+    ) -> Result<(), crate::errors::ValidationError> {
         // We don't verify any data here
         Ok(())
     }
@@ -78,7 +86,7 @@ impl AudienceValidator {
     }
 }
 
-impl<T> Validator<T> for AudienceValidator {
+impl Validator for AudienceValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -111,7 +119,10 @@ impl<T> Validator<T> for AudienceValidator {
         }
     }
 
-    fn validate_full(&self, _: &T) -> Result<(), crate::errors::ValidationError> {
+    fn validate_full<T: DeserializeOwned>(
+        &self,
+        _: &T,
+    ) -> Result<(), crate::errors::ValidationError> {
         // We don't verify any data here
         Ok(())
     }
@@ -129,7 +140,7 @@ impl SubjectValidator {
     }
 }
 
-impl<T> Validator<T> for SubjectValidator {
+impl Validator for SubjectValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -153,8 +164,26 @@ impl<T> Validator<T> for SubjectValidator {
         }
     }
 
-    fn validate_full(&self, _: &T) -> Result<(), crate::errors::ValidationError> {
+    fn validate_full<T: DeserializeOwned>(
+        &self,
+        _: &T,
+    ) -> Result<(), crate::errors::ValidationError> {
         // We don't verify any data here
+        Ok(())
+    }
+}
+
+pub struct NoopValidator;
+
+impl Validator for NoopValidator {
+    fn validate(&self, _: &ClaimsForValidation<'_>) -> Result<(), crate::errors::ValidationError> {
+        Ok(())
+    }
+
+    fn validate_full<T: DeserializeOwned>(
+        &self,
+        _: &T,
+    ) -> Result<(), crate::errors::ValidationError> {
         Ok(())
     }
 }
