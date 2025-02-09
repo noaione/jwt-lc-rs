@@ -13,6 +13,12 @@ pub use signing::{
     SigningAlgorithm,
 };
 
+/// Encode a JSON serializable type `T` into a JWT token using the given `SigningAlgorithm` `S`.
+///
+/// # Errors
+///
+/// This function will error if the `SigningAlgorithm` fails to sign the message or if the
+/// `T` cannot be serialized to JSON.
 pub fn encode<T: Serialize, S: SigningAlgorithm>(
     data: &T,
     signer: &S,
@@ -28,15 +34,35 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
     Ok([message, signature].join("."))
 }
 
+/// Decode a JWT token into a deserialized type `D` using the given `SigningAlgorithm` `S` and
+/// validators `V`.
+///
+/// # Errors
+///
+/// This function will error if:
+///
+/// * The provided token is not a valid JWT token
+/// * The given `SigningAlgorithm` `S` fails to verify the signature
+/// * The given `SigningAlgorithm` `S` does not match the algorithm specified in the JWT header
+/// * The given validators `V` fail to validate the claims or the deserialized data
+///
+/// # Validators
+///
+/// Validators are used to validate the claims and the deserialized data. The validators are
+/// checked in order, and if any of them fail, the function will return an error.
 pub fn decode<D: DeserializeOwned, S: SigningAlgorithm, V: validator::Validator<D>>(
     token: &str,
     signer: &S,
     validator: &[V],
 ) -> Result<TokenData<D>, crate::errors::Error> {
     let (signature, message) = split_two(token)?;
-    let (header, claims_or_data) = split_two(message)?;
+    let (claims_or_data, header) = split_two(message)?;
 
     let header = Header::from_encoded(header)?;
+
+    if header.typ != Some("JWT".to_string()) {
+        return Err(errors::Error::InvalidToken);
+    }
 
     // Check if signer kind and header alg match
     if signer.kind() != header.alg {
@@ -64,6 +90,21 @@ pub fn decode<D: DeserializeOwned, S: SigningAlgorithm, V: validator::Validator<
 
     // Success!
     Ok(TokenData::new(header, data))
+}
+
+/// Decode the header part of a token.
+///
+/// Decodes the first part of a token, which contains the header. The header
+/// is returned as a `Header` struct.
+///
+/// # Errors
+///
+/// The function will return an error if the token is invalid or if the header
+/// could not be decoded.
+pub fn decode_header(token: &str) -> Result<Header, crate::errors::Error> {
+    let (_, message) = split_two(token)?;
+    let (_, header) = split_two(message)?;
+    Header::from_encoded(header)
 }
 
 fn split_two(token: &str) -> Result<(&str, &str), crate::errors::Error> {
