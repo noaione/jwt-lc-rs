@@ -15,7 +15,7 @@ pub struct Secp256k1Algorithm {
 }
 
 impl Secp256k1Algorithm {
-    /// Create a new [`Ed25519Algorithm`] from DER data
+    /// Create a new [`Secp256k1Algorithm`] from DER data
     ///
     /// Given a private key and a public key.
     ///

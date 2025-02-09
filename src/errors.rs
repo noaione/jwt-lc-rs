@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 /// Errors that can occur when using the library
+#[derive(Debug)]
 pub enum Error {
     InvalidKey,
     InvalidPublicKey,
@@ -8,12 +9,19 @@ pub enum Error {
     InvalidToken,
     InvalidDigest(u32),
     InvalidAlgorithm(crate::signing::Algorithm, crate::signing::Algorithm),
+    MismatchedKey(&'static str, &'static str),
+    ExpectedPublicKey,
+    ExpectedPrivateKey,
     Base64DecodeError(base64::DecodeError),
     SigningError,
     VerifyError,
     SerializeError(serde_json::Error),
     DeserializeError(serde_json::Error),
     ValidationError(crate::errors::ValidationError),
+    #[cfg(feature = "pem")]
+    PemParseError(pem::PemError),
+    #[cfg(feature = "pem")]
+    ASN1ParseError(simple_asn1::ASN1DecodeErr),
 }
 
 impl std::fmt::Display for Error {
@@ -35,13 +43,18 @@ impl std::fmt::Display for Error {
             Error::SerializeError(e) => write!(f, "Failed to serialize data: {}", e),
             Error::DeserializeError(e) => write!(f, "Failed to deserialize data: {}", e),
             Error::ValidationError(e) => write!(f, "Validation error: {}", e),
+            Error::MismatchedKey(expect, actual) => write!(
+                f,
+                "Mismatched key, expected: {:?}, actual: {:?}",
+                expect, actual
+            ),
+            Error::ExpectedPublicKey => write!(f, "Expected public key, got private key"),
+            Error::ExpectedPrivateKey => write!(f, "Expected private key, got public key"),
+            #[cfg(feature = "pem")]
+            Error::PemParseError(e) => write!(f, "Pem parse error: {}", e),
+            #[cfg(feature = "pem")]
+            Error::ASN1ParseError(e) => write!(f, "ASN1 parse error: {}", e),
         }
-    }
-}
-
-impl std::fmt::Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self, f)
     }
 }
 
@@ -50,6 +63,20 @@ impl std::error::Error for Error {}
 impl From<base64::DecodeError> for Error {
     fn from(e: base64::DecodeError) -> Self {
         Error::Base64DecodeError(e)
+    }
+}
+
+#[cfg(feature = "pem")]
+impl From<pem::PemError> for Error {
+    fn from(e: pem::PemError) -> Self {
+        Error::PemParseError(e)
+    }
+}
+
+#[cfg(feature = "pem")]
+impl From<simple_asn1::ASN1DecodeErr> for Error {
+    fn from(e: simple_asn1::ASN1DecodeErr) -> Self {
+        Error::ASN1ParseError(e)
     }
 }
 

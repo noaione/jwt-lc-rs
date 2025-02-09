@@ -1,4 +1,7 @@
-use aws_lc_rs::{rand, signature};
+use aws_lc_rs::{
+    rand,
+    signature::{self, KeyPair},
+};
 
 use super::{SHALevel, SigningAlgorithm};
 use crate::utils::b64_encode;
@@ -6,7 +9,7 @@ use crate::utils::b64_encode;
 #[derive(Debug)]
 pub struct RsaAlgorithm {
     kp: signature::RsaKeyPair,
-    pkey: signature::UnparsedPublicKey<Vec<u8>>,
+    pkey: Vec<u8>,
     hash: SHALevel,
 }
 
@@ -21,15 +24,106 @@ impl RsaAlgorithm {
         private_key: &[u8],
         public_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
-        let alg = match hash {
-            SHALevel::SHA256 => &signature::RSA_PKCS1_2048_8192_SHA256,
-            SHALevel::SHA384 => &signature::RSA_PKCS1_2048_8192_SHA384,
-            SHALevel::SHA512 => &signature::RSA_PKCS1_2048_8192_SHA512,
-        };
-
         let key_pair = signature::RsaKeyPair::from_der(private_key)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
-        let pub_key = signature::UnparsedPublicKey::new(alg, public_key.to_vec());
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: public_key.to_vec(),
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaAlgorithm`] from DER data
+    ///
+    /// Given a [`SHALevel`] a private key.
+    /// Public key will automatically inferred.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    pub fn new_der_from_private_key(
+        hash: SHALevel,
+        private_key: &[u8],
+    ) -> Result<Self, crate::errors::Error> {
+        let key_pair = signature::RsaKeyPair::from_der(private_key)
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+        let pub_key_gen = key_pair.public_key().as_ref();
+        let pub_key = pub_key_gen.to_vec();
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: pub_key,
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaAlgorithm`] from PEM data
+    ///
+    /// Given a [`SHALevel`] a private key and a public key.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    #[cfg(feature = "pem")]
+    pub fn new_pem<B: AsRef<[u8]>>(
+        hash: SHALevel,
+        private_key: B,
+        public_key: B,
+    ) -> Result<Self, crate::errors::Error> {
+        let public_pem = crate::pem::PemEncodedKey::read(public_key)?;
+        if public_pem.classify() != &crate::pem::Classification::Rsa {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA",
+                public_pem.classify().name(),
+            ));
+        }
+        if public_pem.kind() != &crate::pem::PemKind::Public {
+            return Err(crate::errors::Error::ExpectedPublicKey);
+        }
+        let private_pem = crate::pem::PemEncodedKey::read(private_key)?;
+        if private_pem.classify() != &crate::pem::Classification::Rsa {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA",
+                private_pem.classify().name(),
+            ));
+        }
+        if private_pem.kind() != &crate::pem::PemKind::Private {
+            return Err(crate::errors::Error::ExpectedPrivateKey);
+        }
+
+        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: public_pem.contents().to_vec(),
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaAlgorithm`] from PEM data
+    ///
+    /// Given a [`SHALevel`] a private key.
+    /// Public key will automatically inferred.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    #[cfg(feature = "pem")]
+    pub fn new_pem_from_private_key<B: AsRef<[u8]>>(
+        hash: SHALevel,
+        private_key: B,
+    ) -> Result<Self, crate::errors::Error> {
+        let private_pem = crate::pem::PemEncodedKey::read(private_key)?;
+        if private_pem.classify() != &crate::pem::Classification::Rsa {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA",
+                private_pem.classify().name(),
+            ));
+        }
+        if private_pem.kind() != &crate::pem::PemKind::Private {
+            return Err(crate::errors::Error::ExpectedPrivateKey);
+        }
+
+        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+        let pub_key = key_pair.public_key().as_ref();
+        let pub_key = pub_key.to_vec();
 
         Ok(Self {
             kp: key_pair,
@@ -65,14 +159,21 @@ impl SigningAlgorithm for RsaAlgorithm {
     }
 
     fn verify(&self, data: &[u8], signature: &[u8]) -> Result<bool, crate::errors::Error> {
-        Ok(self.pkey.verify(data, signature).is_ok())
+        let alg = match self.hash {
+            SHALevel::SHA256 => &signature::RSA_PKCS1_2048_8192_SHA256,
+            SHALevel::SHA384 => &signature::RSA_PKCS1_2048_8192_SHA384,
+            SHALevel::SHA512 => &signature::RSA_PKCS1_2048_8192_SHA512,
+        };
+        let refdata: &[u8] = self.pkey.as_ref();
+        let pub_key = signature::UnparsedPublicKey::new(alg, refdata);
+        Ok(pub_key.verify(data, signature).is_ok())
     }
 }
 
 #[derive(Debug)]
 pub struct RsaPssAlgorithm {
     kp: signature::RsaKeyPair,
-    pkey: signature::UnparsedPublicKey<Vec<u8>>,
+    pkey: Vec<u8>,
     hash: SHALevel,
 }
 
@@ -87,15 +188,106 @@ impl RsaPssAlgorithm {
         private_key: &[u8],
         public_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
-        let alg = match hash {
-            SHALevel::SHA256 => &signature::RSA_PSS_2048_8192_SHA256,
-            SHALevel::SHA384 => &signature::RSA_PSS_2048_8192_SHA384,
-            SHALevel::SHA512 => &signature::RSA_PSS_2048_8192_SHA512,
-        };
-
         let key_pair = signature::RsaKeyPair::from_der(private_key)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
-        let pub_key = signature::UnparsedPublicKey::new(alg, public_key.to_vec());
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: public_key.to_vec(),
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaPssAlgorithm`] from DER data
+    ///
+    /// Given a [`SHALevel`] a private key.
+    /// Public key will automatically inferred.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    pub fn new_der_from_private_key(
+        hash: SHALevel,
+        private_key: &[u8],
+    ) -> Result<Self, crate::errors::Error> {
+        let key_pair = signature::RsaKeyPair::from_der(private_key)
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+        let pub_key_gen = key_pair.public_key().as_ref();
+        let pub_key = pub_key_gen.to_vec();
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: pub_key,
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaPssAlgorithm`] from PEM data
+    ///
+    /// Given a [`SHALevel`] a private key and a public key.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    #[cfg(feature = "pem")]
+    pub fn new_pem<B: AsRef<[u8]>>(
+        hash: SHALevel,
+        private_key: B,
+        public_key: B,
+    ) -> Result<Self, crate::errors::Error> {
+        let public_pem = crate::pem::PemEncodedKey::read(public_key)?;
+        if public_pem.classify() != &crate::pem::Classification::RsaPss {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA-PSS",
+                public_pem.classify().name(),
+            ));
+        }
+        if public_pem.kind() != &crate::pem::PemKind::Public {
+            return Err(crate::errors::Error::ExpectedPublicKey);
+        }
+        let private_pem = crate::pem::PemEncodedKey::read(private_key)?;
+        if private_pem.classify() != &crate::pem::Classification::RsaPss {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA-PSS",
+                private_pem.classify().name(),
+            ));
+        }
+        if private_pem.kind() != &crate::pem::PemKind::Private {
+            return Err(crate::errors::Error::ExpectedPrivateKey);
+        }
+
+        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+
+        Ok(Self {
+            kp: key_pair,
+            pkey: public_pem.contents().to_vec(),
+            hash,
+        })
+    }
+
+    /// Create a new [`RsaPssAlgorithm`] from PEM data
+    ///
+    /// Given a [`SHALevel`] a private key.
+    /// Public key will automatically inferred.
+    ///
+    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    #[cfg(feature = "pem")]
+    pub fn new_pem_from_private_key<B: AsRef<[u8]>>(
+        hash: SHALevel,
+        private_key: B,
+    ) -> Result<Self, crate::errors::Error> {
+        let private_pem = crate::pem::PemEncodedKey::read(private_key)?;
+        if private_pem.classify() != &crate::pem::Classification::RsaPss {
+            return Err(crate::errors::Error::MismatchedKey(
+                "RSA-PSS",
+                private_pem.classify().name(),
+            ));
+        }
+        if private_pem.kind() != &crate::pem::PemKind::Private {
+            return Err(crate::errors::Error::ExpectedPrivateKey);
+        }
+
+        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+            .map_err(|_| crate::errors::Error::InvalidKey)?;
+        let pub_key_gen = key_pair.public_key().as_ref();
+        let pub_key = pub_key_gen.to_vec();
 
         Ok(Self {
             kp: key_pair,
@@ -131,6 +323,14 @@ impl SigningAlgorithm for RsaPssAlgorithm {
     }
 
     fn verify(&self, data: &[u8], signature: &[u8]) -> Result<bool, crate::errors::Error> {
-        Ok(self.pkey.verify(data, signature).is_ok())
+        let alg = match self.hash {
+            SHALevel::SHA256 => &signature::RSA_PSS_2048_8192_SHA256,
+            SHALevel::SHA384 => &signature::RSA_PSS_2048_8192_SHA384,
+            SHALevel::SHA512 => &signature::RSA_PSS_2048_8192_SHA512,
+        };
+
+        let refdata: &[u8] = self.pkey.as_ref();
+        let pub_key = signature::UnparsedPublicKey::new(alg, refdata);
+        Ok(pub_key.verify(data, signature).is_ok())
     }
 }

@@ -1,5 +1,6 @@
 pub mod errors;
 pub mod models;
+pub mod pem;
 pub mod signing;
 pub mod utils;
 pub mod validator;
@@ -29,7 +30,6 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
     let encoded_data = utils::b64_encode_serde(data)?;
 
     let message = [encoded_header, encoded_data].join(".");
-    println!("message A: {:?}", message.as_bytes());
     let signature = signer.sign(message.as_bytes())?;
 
     Ok([message, signature].join("."))
