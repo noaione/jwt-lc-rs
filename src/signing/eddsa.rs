@@ -76,7 +76,7 @@ impl Ed25519Algorithm {
         private_key: B,
     ) -> Result<Self, crate::errors::Error> {
         let private_pem = crate::pem::PemEncodedKey::read(private_key)?;
-        if private_pem.classify() != &crate::pem::Classification::RsaPss {
+        if private_pem.classify() != &crate::pem::Classification::Ed {
             return Err(crate::errors::Error::MismatchedKey(
                 "Ed25519",
                 private_pem.classify().name(),
