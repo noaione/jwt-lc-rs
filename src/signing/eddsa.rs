@@ -35,11 +35,9 @@ impl Ed25519Algorithm {
         Ok(Self { kp, pkey })
     }
 
-    /// Create a new [`RsaPssAlgorithm`] from PEM data
+    /// Create a new [`Ed25519Algorithm`] from PEM data
     ///
-    /// Given a [`SHALevel`] a private key and a public key.
-    ///
-    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
+    /// Given a private key and a public key.
     #[cfg(feature = "pem")]
     pub fn new_pem<B: AsRef<[u8]>>(
         private_key: B,
@@ -69,12 +67,10 @@ impl Ed25519Algorithm {
         Self::new_der(private_pem.contents(), public_pem.contents())
     }
 
-    /// Create a new [`RsaPssAlgorithm`] from PEM data
+    /// Create a new [`Ed25519Algorithm`] from PEM data
     ///
-    /// Given a [`SHALevel`] a private key.
+    /// Given a private key.
     /// Public key will automatically inferred.
-    ///
-    /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
     #[cfg(feature = "pem")]
     pub fn new_pem_from_private_key<B: AsRef<[u8]>>(
         private_key: B,

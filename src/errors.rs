@@ -5,6 +5,8 @@ use std::collections::HashSet;
 pub enum Error {
     InvalidKey,
     InvalidPublicKey,
+    InvalidKeyFormat,
+    InvalidKeyLength(usize, usize),
     InvalidSignature,
     InvalidToken,
     InvalidDigest(u32),
@@ -29,6 +31,12 @@ impl std::fmt::Display for Error {
         match self {
             Error::InvalidKey => write!(f, "Invalid key"),
             Error::InvalidPublicKey => write!(f, "Invalid public key"),
+            Error::InvalidKeyFormat => write!(f, "Invalid key format"),
+            Error::InvalidKeyLength(expect, actual) => write!(
+                f,
+                "Invalid key length, expected: {}, actual: {}",
+                expect, actual
+            ),
             Error::InvalidSignature => write!(f, "Invalid signature"),
             Error::InvalidToken => write!(f, "Invalid token"),
             Error::InvalidAlgorithm(expected, actual) => write!(

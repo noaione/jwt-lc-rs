@@ -71,11 +71,11 @@ impl PemEncodedKey {
                         content: parsed.contents().to_vec(),
                         classify,
                     }),
-                    None => Err(crate::errors::Error::InvalidKey),
+                    None => Err(crate::errors::Error::InvalidKeyFormat),
                 }
             }
 
-            _ => Err(crate::errors::Error::InvalidKey),
+            _ => Err(crate::errors::Error::InvalidKeyFormat),
         }
     }
 
