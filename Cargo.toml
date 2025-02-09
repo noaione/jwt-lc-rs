@@ -1,0 +1,33 @@
+[package]
+name = "jwt-lc-rs"
+version = "0.1.0-dev"
+edition = "2021"
+authors = ["noaione <noaione@n4o.xyz>"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/noaione/jwt-lc-rs"
+rust-version = "1.76.0"
+
+[dependencies]
+aws-lc-rs = { version = "1.12.2", default-features = false, features = [
+    "alloc",
+    "ring-io",
+    "ring-sig-verify"
+] }
+secp256k1 = { version = "0.30.0", default-features = false, features = ["alloc"], optional = true }
+base64 = "^0.22"
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "^1.0"
+
+simple_asn1 = { version = "0.6.3", optional = true }
+pem = { version = "3.0.4", optional = true }
+
+[dev-dependencies]
+jwt-lc-rs = {  path = ".", features = ["fips", "es256k", "pem"] }
+
+[features]
+default = ["fips"]
+fips = ["aws-lc-rs/fips"]
+non_fips = ["aws-lc-rs/non-fips"]
+
+es256k = ["dep:secp256k1"]
+pem = ["dep:simple_asn1", "dep:pem"]
