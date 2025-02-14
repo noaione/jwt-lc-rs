@@ -1,3 +1,5 @@
+//! A HMAC algorithm for signing and verifying
+
 use aws_lc_rs::constant_time::verify_slices_are_equal;
 
 use super::{SHALevel, SigningAlgorithm};

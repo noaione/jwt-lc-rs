@@ -7,6 +7,10 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/noaione/jwt-lc-rs"
 rust-version = "1.81.0"
 
+[package.metadata.docs.rs]
+features = ["fips", "es256k", "pem"]
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 aws-lc-rs = { version = "1.12.2", default-features = false, features = [
     "alloc",

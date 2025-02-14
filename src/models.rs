@@ -1,11 +1,14 @@
+//! A collection of JWT data structures
+
 use std::{borrow::Cow, collections::HashSet, marker::PhantomData};
 
 use serde::{Deserialize, Serialize};
 
 use crate::utils::b64_decode;
 
-/// A basic JWT header, the alg defaults to HS256 and typ is automatically
-/// set to `JWT`. All the other fields are optional.
+/// A really basic JWT header data
+///
+/// The `typ` field will be automatically set to `"JWT"`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub struct Header {
     /// The type of JWS: it can only be "JWT" here
@@ -20,6 +23,10 @@ pub struct Header {
 }
 
 impl Header {
+    /// Create a new JWT header from a signer.
+    ///
+    /// This method will create a new JWT header with the correct `typ` field set to `"JWT"` and the
+    /// `alg` field set to the algorithm used by the signer.
     pub(crate) fn from_signer(signer: &impl crate::signing::SigningAlgorithm) -> Self {
         Self {
             typ: Some("JWT".to_string()),
@@ -27,12 +34,21 @@ impl Header {
         }
     }
 
+    /// Deserialize a JWT header from a base64url-encoded string.
+    ///
+    /// # Errors
+    ///
+    /// This function will error if the input string is not a valid base64url-encoded string or if
+    /// the decoded data is not a valid JWT header.
     pub(crate) fn from_encoded(encoded: &str) -> Result<Self, crate::errors::Error> {
         let decoded = b64_decode(encoded)?;
         serde_json::from_slice(&decoded).map_err(crate::errors::Error::DeserializeError)
     }
 }
 
+/// The data of the decoded token
+///
+/// Contains the header and the claims/data
 #[derive(Debug, Clone)]
 pub struct TokenData<T> {
     header: Header,
@@ -44,33 +60,58 @@ impl<T> TokenData<T> {
         Self { header, claims }
     }
 
+    /// Get a reference to the claims of the token
+    ///
+    /// This is the payload of the token, the actual data you want to access
     pub fn get_claims(&self) -> &T {
         &self.claims
     }
 
+    /// Get a reference to the header of the token
+    ///
+    /// This is the part of the token that contains the type of the token and the algorithm used
+    /// to sign it.
     pub fn get_header(&self) -> &Header {
         &self.header
     }
 }
 
+/// Claims for validation
+///
+/// A *mostly* optional struct that can be used to validate the claims of a token
 #[derive(Deserialize)]
 pub struct ClaimsForValidation<'a> {
+    /// Expiration Time, in seconds since the Unix epoch
     #[serde(deserialize_with = "numeric_type", default)]
     pub exp: TryParse<u64>,
+    /// Not Before, in seconds since the Unix epoch
     #[serde(deserialize_with = "numeric_type", default)]
     pub nbf: TryParse<u64>,
+    /// Issued At, in seconds since the Unix epoch
+    #[serde(deserialize_with = "numeric_type", default)]
+    pub iat: TryParse<u64>,
+    /// Subject issuer
     #[serde(borrow)]
     pub sub: TryParse<Cow<'a, str>>,
+    /// Issuer
     #[serde(borrow)]
     pub iss: TryParse<MaybeMultiString<'a>>,
+    /// Audience
     #[serde(borrow)]
     pub aud: TryParse<MaybeMultiString<'a>>,
+    /// JWT IDs, case sensitive string
+    #[serde(borrow)]
+    pub jti: TryParse<Cow<'a, str>>,
 }
 
+/// A type that will try to parse a value into a specific type
 #[derive(Debug)]
 pub enum TryParse<T> {
+    /// The value was successfully parsed
     Parsed(T),
+    /// The value could not be parsed
     FailedToParse,
+    /// The value is not present
     NotPresent,
 }
 
@@ -92,15 +133,18 @@ impl<T> Default for TryParse<T> {
     }
 }
 
+/// A borrowed string type that can either be a single string or a set of strings
 #[derive(Deserialize)]
 #[serde(untagged)]
 pub enum MaybeMultiString<'a> {
+    /// A single string
     Single(#[serde(borrow)] Cow<'a, str>),
+    /// A set of strings
     Multiple(#[serde(borrow)] HashSet<BorrowedCowIfPossible<'a>>),
 }
 
-/// Usually #[serde(borrow)] on `Cow` enables deserializing with no allocations where
-/// possible (no escapes in the original str) but it does not work on e.g. `HashSet<Cow<str>>`
+/// Usually #[serde(borrow)] on [`Cow`] enables deserializing with no allocations where
+/// possible (no escapes in the original str) but it does not work on e.g. [`HashSet<Cow<str>>`]
 /// We use this struct in this case.
 #[derive(Deserialize, PartialEq, Eq, Hash)]
 pub struct BorrowedCowIfPossible<'a>(#[serde(borrow)] Cow<'a, str>);

@@ -1,6 +1,48 @@
+//! # jwt-lc-rs
+//!
+//! A simple library for generating and verifying JWTs using [`aws-lc-rs`](https://docs.rs/aws-lc-rs)
+//!
+//! This library only includes a tiny subset of the RFC specs.
+//!
+//! ## Supported algorithms
+//! - `HS256`
+//! - `HS384`
+//! - `HS512`
+//! - `RS256`
+//! - `RS384`
+//! - `RS512`
+//! - `PS256`
+//! - `PS384`
+//! - `PS512`
+//! - `ES256`
+//! - `ES384`
+//! - `ES512`
+//! - `ES256K` (via [`secp256k1`](https://docs.rs/secp256k1) crate)
+//! - `EdDSA` (Ed25519)
+//!
+//! ## Supported native validations
+//!
+//! **Header**:
+//! - `typ` (Type), always check it is set to `"JWT"` (case-sensitive)
+//! - `alg` (Algorithm), verify that the requested algorithm is what you expect.
+//!
+//! **Claims/body**:
+//! - `iss` (Issuer)
+//! - `sub` (Subject)
+//! - `aud` (Audience)
+//! - `exp` (Expiry)
+//! - `nbf` (Not before)
+//! - Any other custom validation can be implemented using the [`Validator`] trait
+//!
+//! **Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the [`Validator`] trait.
+
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
 pub mod errors;
 pub mod models;
-pub mod pem;
+#[cfg(feature = "pem")]
+pub(crate) mod pem;
 pub mod signing;
 pub mod utils;
 pub mod validator;
@@ -14,15 +56,16 @@ pub use signing::{
     SHALevel, SigningAlgorithm,
 };
 
-/// Re-export of [`simple_asn1::from_der`] function from the [`simple_asn1`] crate.
+/// Re-export of [`simple_asn1::from_der`] function.
 pub use simple_asn1::from_der as asn1_decode_der;
+use validator::Validator;
 
-/// Encode a JSON serializable type `T` into a JWT token using the given `SigningAlgorithm` `S`.
+/// Encode a JSON serializable type into a JWT token using a given [`SigningAlgorithm`].
 ///
 /// # Errors
 ///
 /// This function will error if the `SigningAlgorithm` fails to sign the message or if the
-/// `T` cannot be serialized to JSON.
+/// `data` cannot be serialized to JSON.
 pub fn encode<T: Serialize, S: SigningAlgorithm>(
     data: &T,
     signer: &S,
@@ -38,32 +81,34 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
     Ok([message, signature].join("."))
 }
 
-/// Decode a JWT token into a deserialized type `D` using the given `SigningAlgorithm` `S` and
-/// validators `V`.
+/// Decode a JWT token into a deserialized type using a given [`SigningAlgorithm`] and a set of
+/// data [`Validator`].
 ///
 /// # Errors
 ///
 /// This function will error if:
 ///
 /// * The provided token is not a valid JWT token
-/// * The given `SigningAlgorithm` `S` fails to verify the signature
-/// * The given `SigningAlgorithm` `S` does not match the algorithm specified in the JWT header
-/// * The given validators `V` fail to validate the claims or the deserialized data
+/// * The given [`SigningAlgorithm`] fails to verify the signature
+/// * The given [`SigningAlgorithm`] does not match the algorithm specified in the JWT header
+/// * The given validators fail to validate the claims or the deserialized data
 ///
 /// # Validators
 ///
 /// Validators are used to validate the claims and the deserialized data. The validators are
 /// checked in order, and if any of them fail, the function will return an error.
+/// If you don't want to validate the claims, you can give a [`validator::NoopValidator`].
 pub fn decode<T: DeserializeOwned, S: SigningAlgorithm>(
     token: &str,
     signer: &S,
-    validator: &[impl validator::Validator],
+    validator: &[impl Validator],
 ) -> Result<TokenData<T>, crate::errors::Error> {
     let (signature, message) = split_two(token)?;
     let (claims_or_data, header) = split_two(message)?;
 
     let header = Header::from_encoded(header)?;
 
+    // Check for JWT type
     if header.typ != Some("JWT".to_string()) {
         return Err(errors::Error::InvalidToken);
     }
@@ -100,7 +145,7 @@ pub fn decode<T: DeserializeOwned, S: SigningAlgorithm>(
 /// Decode the header part of a token.
 ///
 /// Decodes the first part of a token, which contains the header. The header
-/// is returned as a `Header` struct.
+/// is returned as a [`Header`] struct.
 ///
 /// # Errors
 ///

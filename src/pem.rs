@@ -1,5 +1,3 @@
-#![cfg(feature = "pem")]
-
 use crate::utils::extract_first_bitstring;
 
 #[derive(Debug, PartialEq)]

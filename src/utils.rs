@@ -1,3 +1,5 @@
+//! A collection of utility functions, mostly for encoding and decoding
+
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use serde::Serialize;
 
@@ -21,6 +23,8 @@ pub(crate) fn b64_encode_serde<T: Serialize>(data: &T) -> Result<String, crate::
 ///
 /// This is used to extract the actual EC/Ed25519 key data
 /// from an ASN.1 dump of the PEM or DER encoded public key.
+///
+/// Code from: <https://github.com/Keats/jsonwebtoken/blob/master/src/pem/decoder.rs#L189-L208>
 pub fn extract_first_bitstring(
     asn1: &[simple_asn1::ASN1Block],
 ) -> Result<&[u8], crate::errors::Error> {

@@ -1,3 +1,5 @@
+//! A RSA (and RSA-PSS) algorithm for signing and verifying
+
 use aws_lc_rs::{
     rand,
     signature::{self, KeyPair},

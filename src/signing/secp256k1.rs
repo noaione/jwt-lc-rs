@@ -1,4 +1,4 @@
-#![cfg(feature = "es256k")]
+//! A secp256k1 algorithm for signing and verifying
 
 use secp256k1::{ecdsa::Signature, Message, PublicKey, Secp256k1, SecretKey};
 

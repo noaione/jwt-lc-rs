@@ -1,3 +1,5 @@
+//! A EdDSA/Ed25519 algorithm for signing and verifying
+
 use aws_lc_rs::signature::{self, KeyPair};
 
 use super::SigningAlgorithm;

@@ -1,3 +1,5 @@
+//! A ECDSA algorithm for signing and verifying
+
 use aws_lc_rs::{
     rand,
     signature::{self, KeyPair},

@@ -1,9 +1,17 @@
+//! A collection of all the signing algorithms supported by this library.
+//!
+//! Please see each module for details and usages.
+
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+
 use serde::{Deserialize, Serialize};
 
 pub mod ecdsa;
 pub mod eddsa;
 pub mod hmac;
 pub mod rsa;
+#[cfg(feature = "es256k")]
 pub mod secp256k1;
 
 pub use ecdsa::EcdsaAlgorithm;

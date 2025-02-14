@@ -20,13 +20,21 @@ This library only includes a tiny subset of the RFC specs.
 - `ES256K` (via [`secp256k1`](https://crates.io/crates/secp256k1) crate)
 - `EdDSA` (Ed25519)
 
-## Supported validations
+## Supported native validations
+
+**Header**:
+- `typ` (Type), always check it is set to `"JWT"` (case-sensitive)
+- `alg` (Algorithm), verify that the requested algorithm is what you expect.
+
+**Claims/body**:
 - `iss` (Issuer)
 - `sub` (Subject)
 - `aud` (Audience)
 - `exp` (Expiry)
 - `nbf` (Not before)
-- Any other custom validation can be implemented using the `Validation` trait
+- Any other custom validation can be implemented using the `Validator` trait
+
+**Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the `Validator` trait.
 
 ## Examples
 

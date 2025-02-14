@@ -1,28 +1,62 @@
+//! A collection of possible errors
+
 use std::collections::HashSet;
 
 /// Errors that can occur when using the library
 #[derive(Debug)]
 pub enum Error {
+    /// Invalid private key
     InvalidKey,
+    /// Invalid public key
     InvalidPublicKey,
+    /// Invalid PEM key format
     InvalidKeyFormat,
+    /// Invalid key length
+    ///
+    /// The first value is the expected length and the second is the actual length
     InvalidKeyLength(usize, usize),
+    /// Invalid signature
     InvalidSignature,
+    /// Invalid token format provided
     InvalidToken,
+    /// Invalid digest size
     InvalidDigest(u32),
+    /// Invalid algorithm used when creating in PEM mode
     InvalidAlgorithm(crate::signing::Algorithm, crate::signing::Algorithm),
+    /// Invalid SPKI data
     InvalidSPKI,
+    /// Mismatched PEM key type
     MismatchedKey(&'static str, &'static str),
+    /// Expected a public key, but got private key instead.
     ExpectedPublicKey,
+    /// Expected a private key, but got public key instead.
     ExpectedPrivateKey,
+    /// Failed to decode base64 data
     Base64DecodeError(base64::DecodeError),
+    /// There is an error occurred when trying to sign the message
     SigningError,
+    /// There is an error occurred when trying to validate the signature
     VerifyError,
+    /// Failed to serialize data
+    ///
+    /// This is a wrapper for [`serde_json::Error`]
     SerializeError(serde_json::Error),
+    /// Failed to deserialize data
+    ///
+    /// This is a wrapper for [`serde_json::Error`]
     DeserializeError(serde_json::Error),
+    /// Error when validating the token
+    ///
+    /// This is a wrapper for [`ValidationError`]
     ValidationError(crate::errors::ValidationError),
+    /// Error when trying to parse a bytes data to PEM
+    ///
+    /// This is a wrapper for [`pem::PemError`]
     #[cfg(feature = "pem")]
     PemParseError(pem::PemError),
+    /// Error when trying to parse a bytes data to ASM.1
+    ///
+    /// This is a wrapper for [`simple_asn1::ASN1DecodeErr`]
     ASN1ParseError(simple_asn1::ASN1DecodeErr),
 }
 
@@ -91,12 +125,23 @@ impl From<simple_asn1::ASN1DecodeErr> for Error {
 /// Collection of errors that can occur when validating the token
 #[derive(Debug)]
 pub enum ValidationError {
+    /// The issuer of the token does not match the expected issuer
     InvalidIssuer(HashSet<String>),
+    /// The subject of the token does not match the expected subject
     InvalidSubject(String),
+    /// The audience of the token does not match the expected audience
     InvalidAudience(HashSet<String>),
+    /// The token has expired
+    ///
+    /// First value is the expiration time, second value is the current/before time
     TokenExpired(u64, u64),
+    /// The token has not yet been valid
+    ///
+    /// First value is the not before time, second value is the current time
     TokenNotYetValid(u64, u64),
+    /// A required field is missing
     MissingField(String),
+    /// Failed to parse the token
     FailedToParse(String),
 }
 

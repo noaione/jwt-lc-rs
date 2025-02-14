@@ -8,12 +8,13 @@ use crate::{is_subset, ClaimsForValidation, MaybeMultiString, TryParse};
 
 /// A trait for validating token data
 pub trait Validator {
-    /// The function to validate token data
+    /// Validate the token data from the deserialized [`ClaimsForValidation`] information.
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
     ) -> Result<(), crate::errors::ValidationError>;
 
+    /// Validate the given deserialized data
     fn validate_full<T: DeserializeOwned>(
         &self,
         data: &T,
