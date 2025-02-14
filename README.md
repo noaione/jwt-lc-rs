@@ -11,16 +11,14 @@ This library only includes a tiny subset of the RFC specs.
 - `RS256`
 - `RS384`
 - `RS512`
-- `ES256K` (via [`secp256k1`](https://crates.io/crates/secp256k1) crate)
 - `PS256`
 - `PS384`
 - `PS512`
-- `EdDSA` (Ed25519)
-
-**To be implemented**:
 - `ES256`
 - `ES384`
 - `ES512`
+- `ES256K` (via [`secp256k1`](https://crates.io/crates/secp256k1) crate)
+- `EdDSA` (Ed25519)
 
 ## Supported validations
 - `iss` (Issuer)

@@ -14,7 +14,7 @@ pub(crate) enum Classification {
 impl Classification {
     pub(crate) fn name(&self) -> &'static str {
         match self {
-            Self::Ec => "EC",
+            Self::Ec => "ECDSA",
             Self::Ed => "Ed25519",
             Self::Rsa => "RSA",
             Self::RsaPss => "RSA-PSS",

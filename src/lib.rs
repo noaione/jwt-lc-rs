@@ -10,8 +10,8 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg(feature = "es256k")]
 pub use signing::Secp256k1Algorithm;
 pub use signing::{
-    Algorithm, Ed25519Algorithm, HmacAlgorithm, RsaAlgorithm, RsaPssAlgorithm, SHALevel,
-    SigningAlgorithm,
+    Algorithm, EcdsaAlgorithm, Ed25519Algorithm, HmacAlgorithm, RsaAlgorithm, RsaPssAlgorithm,
+    SHALevel, SigningAlgorithm,
 };
 
 /// Re-export of [`simple_asn1::from_der`] function from the [`simple_asn1`] crate.
