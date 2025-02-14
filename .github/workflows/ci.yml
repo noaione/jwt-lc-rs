@@ -60,8 +60,10 @@ jobs:
           prefix-key: "rust-stable-tests-${{ runner.os }}-${{ env.RUST_VERSION }}"
 
       - name: Setup nasm
-        uses: ilammy/setup-nasm@6a6c21c8bfb825dbbd3176445a00da5d4046343a
         if: runner.os == 'Windows'
+        run:
+          choco install nasm
+        shell: powershell
 
       - name: Test
         run: cargo test --verbose --all
@@ -94,8 +96,10 @@ jobs:
           prefix-key: "rust-msrv-tests-${{ runner.os }}-${{ env.RUST_VERSION }}"
 
       - name: Setup nasm
-        uses: ilammy/setup-nasm@6a6c21c8bfb825dbbd3176445a00da5d4046343a
         if: runner.os == 'Windows'
+        run:
+          choco install nasm
+        shell: powershell
 
       - name: Test
         run: cargo +${{ env.RUST_MSRV }} test --verbose --all
