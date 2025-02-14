@@ -1,5 +1,8 @@
 {
     "[rust]": {
         "editor.formatOnSave": true
+    },
+    "lldb.script": {
+        "lang.rust.toolchain": "stable-x86_64-pc-windows-gnu"
     }
 }

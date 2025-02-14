@@ -1,0 +1,101 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.vscode/**'
+    tags:
+      - v*
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.vscode/**'
+
+env:
+  CARGO_TERM_COLOR: always
+  PKG_CONFIG_SYSROOT_DIR: /
+  RUST_MSRV: "1.76.0"
+permissions:
+  contents: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests-stable:
+    strategy:
+      matrix:
+        os:
+          # Linux (x64)
+          - [ubuntu-24.04, x86_64-unknown-linux-gnu]
+          # Windows Server 2025 (x64)
+          - [windows-2025, x86_64-pc-windows-msvc]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os[0] }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'docs:') || !contains(github.event.head_commit.message, 'skip ci') }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+
+      - name: Rustup stable
+        run: |
+          rustup update stable
+          echo "RUST_VERSION=$(rustc --version | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
+
+      - name: Setup rust cache
+        uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
+        with:
+          prefix-key: "rust-stable-tests-${{ runner.os }}-${{ env.RUST_VERSION }}"
+
+      - name: Setup nasm
+        uses: ilammy/setup-nasm@6a6c21c8bfb825dbbd3176445a00da5d4046343a
+        if: runner.os == 'Windows'
+
+      - name: Test
+        run: cargo test --verbose --all
+
+  tests-msrv:
+    strategy:
+      matrix:
+        os:
+          # Linux (x64)
+          - [ubuntu-24.04, x86_64-unknown-linux-gnu]
+          # Windows Server 2025 (x64)
+          - [windows-2025, x86_64-pc-windows-msvc]
+      fail-fast: false
+
+    runs-on: ${{ matrix.os[0] }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'docs:') || !contains(github.event.head_commit.message, 'skip ci') }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+
+      - name: Rustup MSRV
+        run: |
+          rustup install ${{ env.RUST_MSRV }}
+          echo "RUST_VERSION=$(rustc --version | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
+
+      - name: Setup rust cache
+        uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
+        with:
+          prefix-key: "rust-msrv-tests-${{ runner.os }}-${{ env.RUST_VERSION }}"
+
+      - name: Setup nasm
+        uses: ilammy/setup-nasm@6a6c21c8bfb825dbbd3176445a00da5d4046343a
+        if: runner.os == 'Windows'
+
+      - name: Test
+        run: cargo +${{ env.RUST_MSRV }} test --verbose --all
