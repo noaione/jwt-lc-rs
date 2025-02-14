@@ -42,7 +42,7 @@ This project is dual-licensed under the [Apache-2.0](LICENSE-APACHE) and [MIT](L
 
 ## MSRV policy
 
-The current minimum supported Rust version is `1.78.0`
+The current minimum supported Rust version is `1.81.0`
 
 This will be bumped periodically as we support newer versions of Rust.
 

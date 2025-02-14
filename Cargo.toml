@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["noaione <noaione@n4o.xyz>"]
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/noaione/jwt-lc-rs"
-rust-version = "1.76.0"
+rust-version = "1.81.0"
 
 [dependencies]
 aws-lc-rs = { version = "1.12.2", default-features = false, features = [
