@@ -24,11 +24,9 @@ This library only includes a tiny subset of the RFC specs.
 - `iss` (Issuer)
 - `sub` (Subject)
 - `aud` (Audience)
-- Any other custom validation can be implemented using the `Validation` trait
-
-**To be implemented**
 - `exp` (Expiry)
 - `nbf` (Not before)
+- Any other custom validation can be implemented using the `Validation` trait
 
 ## Examples
 

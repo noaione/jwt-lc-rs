@@ -94,8 +94,8 @@ pub enum ValidationError {
     InvalidIssuer(HashSet<String>),
     InvalidSubject(String),
     InvalidAudience(HashSet<String>),
-    TokenExpired(i64),
-    TokenNotYetValid(i64),
+    TokenExpired(u64, u64),
+    TokenNotYetValid(u64, u64),
     MissingField(String),
     FailedToParse(String),
 }
@@ -110,9 +110,19 @@ impl std::fmt::Display for ValidationError {
             ValidationError::InvalidAudience(aud) => {
                 write!(f, "Invalid audience, expected: {:?}", aud)
             }
-            ValidationError::TokenExpired(exp) => write!(f, "Token expired, expired at: {}", exp),
-            ValidationError::TokenNotYetValid(nbf) => {
-                write!(f, "Token not yet valid, valid from: {}", nbf)
+            ValidationError::TokenExpired(exp, before) => {
+                write!(
+                    f,
+                    "Token expired, expired at: {} (expected before: {})",
+                    exp, before
+                )
+            }
+            ValidationError::TokenNotYetValid(nbf, current) => {
+                write!(
+                    f,
+                    "Token not yet valid, valid from: {} (current time: {})",
+                    nbf, current
+                )
             }
             ValidationError::MissingField(field) => write!(f, "Missing field: {}", field),
             ValidationError::FailedToParse(field) => write!(f, "Failed to parse: {}", field),
