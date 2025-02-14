@@ -14,6 +14,9 @@ pub use signing::{
     SigningAlgorithm,
 };
 
+/// Re-export of [`simple_asn1::from_der`] function from the [`simple_asn1`] crate.
+pub use simple_asn1::from_der as asn1_decode_der;
+
 /// Encode a JSON serializable type `T` into a JWT token using the given `SigningAlgorithm` `S`.
 ///
 /// # Errors

@@ -18,7 +18,7 @@ base64 = "^0.22"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "^1.0"
 
-simple_asn1 = { version = "0.6.3", optional = true }
+simple_asn1 = { version = "0.6.3" }
 pem = { version = "3.0.4", optional = true }
 
 [dev-dependencies]
@@ -31,4 +31,4 @@ fips = ["aws-lc-rs/fips"]
 non_fips = ["aws-lc-rs/non-fips"]
 
 es256k = ["dep:secp256k1"]
-pem = ["dep:simple_asn1", "dep:pem"]
+pem = ["dep:pem"]

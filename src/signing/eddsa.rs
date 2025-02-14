@@ -64,7 +64,7 @@ impl Ed25519Algorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        Self::new_der(private_pem.contents(), public_pem.contents())
+        Self::new_der(private_pem.contents()?, public_pem.contents()?)
     }
 
     /// Create a new [`Ed25519Algorithm`] from PEM data
@@ -86,7 +86,7 @@ impl Ed25519Algorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        Self::new_der_from_private_key(private_pem.contents())
+        Self::new_der_from_private_key(private_pem.contents()?)
     }
 }
 

@@ -17,6 +17,7 @@ impl RsaAlgorithm {
     /// Create a new [`RsaAlgorithm`] from DER data
     ///
     /// Given a [`SHALevel`] a private key and a public key.
+    /// We only support PKCS#1 encoded public key and not PKCS#8.
     ///
     /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
     pub fn new_der(
@@ -25,6 +26,9 @@ impl RsaAlgorithm {
         public_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
         let key_pair = signature::RsaKeyPair::from_der(private_key)
+            // try with pkcs#8
+            .or_else(|_| signature::RsaKeyPair::from_pkcs8(private_key))
+            // still fail, error
             .map_err(|_| crate::errors::Error::InvalidKey)?;
 
         Ok(Self {
@@ -45,6 +49,9 @@ impl RsaAlgorithm {
         private_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
         let key_pair = signature::RsaKeyPair::from_der(private_key)
+            // try with pkcs#8
+            .or_else(|_| signature::RsaKeyPair::from_pkcs8(private_key))
+            // still fail, error
             .map_err(|_| crate::errors::Error::InvalidKey)?;
         let pub_key_gen = key_pair.public_key().as_ref();
         let pub_key = pub_key_gen.to_vec();
@@ -59,6 +66,7 @@ impl RsaAlgorithm {
     /// Create a new [`RsaAlgorithm`] from PEM data
     ///
     /// Given a [`SHALevel`] a private key and a public key.
+    /// We only support PKCS#1 encoded public key and not PKCS#8.
     ///
     /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
     #[cfg(feature = "pem")]
@@ -88,12 +96,12 @@ impl RsaAlgorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+        let key_pair = signature::RsaKeyPair::from_der(private_pem.contents()?)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
 
         Ok(Self {
             kp: key_pair,
-            pkey: public_pem.contents().to_vec(),
+            pkey: public_pem.contents()?.to_vec(),
             hash,
         })
     }
@@ -120,7 +128,7 @@ impl RsaAlgorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+        let key_pair = signature::RsaKeyPair::from_der(private_pem.contents()?)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
         let pub_key = key_pair.public_key().as_ref();
         let pub_key = pub_key.to_vec();
@@ -181,6 +189,7 @@ impl RsaPssAlgorithm {
     /// Create a new [`RsaPssAlgorithm`] from DER data
     ///
     /// Given a [`SHALevel`] a private key and a public key.
+    /// We only support PKCS#1 encoded public key and not PKCS#8.
     ///
     /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
     pub fn new_der(
@@ -189,6 +198,9 @@ impl RsaPssAlgorithm {
         public_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
         let key_pair = signature::RsaKeyPair::from_der(private_key)
+            // try with pkcs#8
+            .or_else(|_| signature::RsaKeyPair::from_pkcs8(private_key))
+            // still fail, error
             .map_err(|_| crate::errors::Error::InvalidKey)?;
 
         Ok(Self {
@@ -209,6 +221,9 @@ impl RsaPssAlgorithm {
         private_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
         let key_pair = signature::RsaKeyPair::from_der(private_key)
+            // try with pkcs#8
+            .or_else(|_| signature::RsaKeyPair::from_pkcs8(private_key))
+            // still fail, error
             .map_err(|_| crate::errors::Error::InvalidKey)?;
         let pub_key_gen = key_pair.public_key().as_ref();
         let pub_key = pub_key_gen.to_vec();
@@ -223,6 +238,7 @@ impl RsaPssAlgorithm {
     /// Create a new [`RsaPssAlgorithm`] from PEM data
     ///
     /// Given a [`SHALevel`] a private key and a public key.
+    /// We only support PKCS#1 encoded public key and not PKCS#8.
     ///
     /// Minimum supported key size is 2048 bits and maximum is 8192 bits.
     #[cfg(feature = "pem")]
@@ -252,12 +268,12 @@ impl RsaPssAlgorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+        let key_pair = signature::RsaKeyPair::from_der(private_pem.contents()?)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
 
         Ok(Self {
             kp: key_pair,
-            pkey: public_pem.contents().to_vec(),
+            pkey: public_pem.contents()?.to_vec(),
             hash,
         })
     }
@@ -284,7 +300,7 @@ impl RsaPssAlgorithm {
             return Err(crate::errors::Error::ExpectedPrivateKey);
         }
 
-        let key_pair = signature::RsaKeyPair::from_pkcs8(private_pem.contents())
+        let key_pair = signature::RsaKeyPair::from_der(private_pem.contents()?)
             .map_err(|_| crate::errors::Error::InvalidKey)?;
         let pub_key_gen = key_pair.public_key().as_ref();
         let pub_key = pub_key_gen.to_vec();

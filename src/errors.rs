@@ -11,6 +11,7 @@ pub enum Error {
     InvalidToken,
     InvalidDigest(u32),
     InvalidAlgorithm(crate::signing::Algorithm, crate::signing::Algorithm),
+    InvalidSPKI,
     MismatchedKey(&'static str, &'static str),
     ExpectedPublicKey,
     ExpectedPrivateKey,
@@ -22,7 +23,6 @@ pub enum Error {
     ValidationError(crate::errors::ValidationError),
     #[cfg(feature = "pem")]
     PemParseError(pem::PemError),
-    #[cfg(feature = "pem")]
     ASN1ParseError(simple_asn1::ASN1DecodeErr),
 }
 
@@ -44,6 +44,7 @@ impl std::fmt::Display for Error {
                 "Invalid algorithm, expected: {:?}, actual: {:?}",
                 expected, actual
             ),
+            Error::InvalidSPKI => write!(f, "Invalid SPKI"),
             Error::InvalidDigest(expect) => write!(f, "Invalid digest size, expected {}", expect),
             Error::Base64DecodeError(e) => write!(f, "Base64 decode error: {}", e),
             Error::SigningError => write!(f, "Failed to sign data"),
@@ -81,7 +82,6 @@ impl From<pem::PemError> for Error {
     }
 }
 
-#[cfg(feature = "pem")]
 impl From<simple_asn1::ASN1DecodeErr> for Error {
     fn from(e: simple_asn1::ASN1DecodeErr) -> Self {
         Error::ASN1ParseError(e)

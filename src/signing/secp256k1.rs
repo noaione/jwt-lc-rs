@@ -68,7 +68,7 @@ impl Secp256k1Algorithm {
             return Err(crate::errors::Error::ExpectedPublicKey);
         }
 
-        Self::new_der(private_pem.contents(), public_pem.contents())
+        Self::new_der(private_pem.contents()?, public_pem.contents()?)
     }
 
     /// Consume a message and digest it with SHA3-256

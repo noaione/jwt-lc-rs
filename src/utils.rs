@@ -14,3 +14,32 @@ pub(crate) fn b64_encode_serde<T: Serialize>(data: &T) -> Result<String, crate::
     let json = serde_json::to_vec(data).map_err(crate::errors::Error::SerializeError)?;
     Ok(b64_encode(&json))
 }
+
+/// Given a slice of ASN.1 blocks, find the first bitstring or
+/// octetstring block and return the bytes inside it.
+/// If no such block is found, return an error.
+///
+/// This is used to extract the actual EC/Ed25519 key data
+/// from an ASN.1 dump of the PEM or DER encoded public key.
+pub fn extract_first_bitstring(
+    asn1: &[simple_asn1::ASN1Block],
+) -> Result<&[u8], crate::errors::Error> {
+    for asn1_entry in asn1.iter() {
+        match asn1_entry {
+            simple_asn1::ASN1Block::Sequence(_, entries) => {
+                if let Ok(result) = extract_first_bitstring(entries) {
+                    return Ok(result);
+                }
+            }
+            simple_asn1::ASN1Block::BitString(_, _, value) => {
+                return Ok(value.as_ref());
+            }
+            simple_asn1::ASN1Block::OctetString(_, value) => {
+                return Ok(value.as_ref());
+            }
+            _ => (),
+        }
+    }
+
+    Err(crate::errors::Error::InvalidSPKI)
+}

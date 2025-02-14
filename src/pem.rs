@@ -1,5 +1,7 @@
 #![cfg(feature = "pem")]
 
+use crate::utils::extract_first_bitstring;
+
 #[derive(Debug, PartialEq)]
 pub(crate) enum Classification {
     Ec,
@@ -31,6 +33,8 @@ pub(crate) struct PemEncodedKey {
     kind: PemKind,
     content: Vec<u8>,
     classify: Classification,
+    asn1: Vec<simple_asn1::ASN1Block>,
+    spki: bool,
 }
 
 impl PemEncodedKey {
@@ -43,21 +47,29 @@ impl PemEncodedKey {
                 kind: PemKind::Private,
                 content: parsed.contents().to_vec(),
                 classify: classify_pem(&asn_parse).unwrap_or(Classification::Rsa),
+                asn1: asn_parse,
+                spki: false,
             }),
             "RSA PUBLIC KEY" => Ok(Self {
                 kind: PemKind::Private,
                 content: parsed.contents().to_vec(),
                 classify: classify_pem(&asn_parse).unwrap_or(Classification::Rsa),
+                asn1: asn_parse,
+                spki: false,
             }),
             "EC PUBLIC KEY" => Ok(Self {
                 kind: PemKind::Public,
                 content: parsed.contents().to_vec(),
                 classify: classify_pem(&asn_parse).unwrap_or(Classification::Ec),
+                asn1: asn_parse,
+                spki: false,
             }),
             "EC PRIVATE KEY" => Ok(Self {
                 kind: PemKind::Private,
                 content: parsed.contents().to_vec(),
                 classify: classify_pem(&asn_parse).unwrap_or(Classification::Ec),
+                asn1: asn_parse,
+                spki: false,
             }),
 
             tag @ "PRIVATE KEY" | tag @ "PUBLIC KEY" | tag @ "CERTIFICATE" => {
@@ -70,6 +82,8 @@ impl PemEncodedKey {
                         },
                         content: parsed.contents().to_vec(),
                         classify,
+                        asn1: asn_parse,
+                        spki: true,
                     }),
                     None => Err(crate::errors::Error::InvalidKeyFormat),
                 }
@@ -79,8 +93,14 @@ impl PemEncodedKey {
         }
     }
 
-    pub(crate) fn contents(&self) -> &[u8] {
-        &self.content
+    pub(crate) fn contents(&self) -> Result<&[u8], crate::errors::Error> {
+        match (&self.kind, &self.classify, self.spki) {
+            (PemKind::Public, Classification::Ec, true) => extract_first_bitstring(&self.asn1),
+            (PemKind::Public, Classification::Ed, true) => extract_first_bitstring(&self.asn1),
+            (_, Classification::Rsa, true) => extract_first_bitstring(&self.asn1),
+            (_, Classification::RsaPss, true) => extract_first_bitstring(&self.asn1),
+            _ => Ok(&self.content),
+        }
     }
 
     pub(crate) fn kind(&self) -> &PemKind {
