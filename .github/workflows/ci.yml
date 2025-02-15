@@ -103,3 +103,32 @@ jobs:
 
       - name: Test
         run: cargo +${{ env.RUST_MSRV }} test --verbose --all
+
+  docs:
+    runs-on: ubuntu-24.04
+    if: ${{ !startsWith(github.event.head_commit.message, 'docs:') || !contains(github.event.head_commit.message, 'skip ci') }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@85e6279cec87321a52edac9c87bce653a07cf6c2
+
+      - name: Rustup stable
+        run: |
+          rustup install nightly
+          echo "RUST_VERSION=$(rustc --version | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
+
+      - name: Setup rust cache
+        uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
+        with:
+          prefix-key: "rust-docs-tests-${{ runner.os }}-${{ env.RUST_VERSION }}"
+
+      - name: Make documentation
+        run: cargo +nightly doc --all-features --document-private-items --no-deps
+        env:
+          RUSTDOCFLAGS: --cfg docsrs -Dwarnings
+
+      - name: Upload docs
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        with:
+          name: jwt-lc-rs-docs
+          path: target/doc

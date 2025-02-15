@@ -4,7 +4,7 @@
 //! We only support EdDSA/ED25519 in PKCS#8 encoding format.
 //!
 //! The key usually starts with:
-//! ```
+//! ```text
 //! -----BEGIN PUBLIC KEY-----
 //! ```
 //!
@@ -30,11 +30,11 @@
 //! use serde::{Deserialize, Serialize};
 //!
 //! // Import key-pair
-//! let private = include_bytes!("private_ed25519.der");
-//! let public = include_bytes!("public_ed25519.der");
+//! let private = std::fs::read("private_ed25519.der").unwrap();
+//! let public = std::fs::read("public_ed25519.der").unwrap();
 //!
 //! // Initialize the signing algorithm
-//! let alg = Ed25519Algorithm::new_der(private, public).unwrap();
+//! let alg = Ed25519Algorithm::new_der(&private, &public).unwrap();
 //!
 //! // Sign a message
 //! #[derive(Serialize, Deserialize, Debug)]
@@ -42,7 +42,7 @@
 //!     text: String,
 //! }
 //!
-//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//! let data = SignedMessage { text: "Hello, world!".to_string() };
 //!
 //! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 //! println!("JWT Encoded: {}", encoded);
@@ -50,13 +50,20 @@
 //!
 //! Decoding:
 //! ```rust,no_run
+//! use jwt_lc_rs::validator::NoopValidator;
+//! # use serde::{Deserialize, Serialize};
+//! # #[derive(Serialize, Deserialize, Debug)]
+//! # struct SignedMessage { text: String };
+//! # let encoded = "test-data";
+//! # let alg = jwt_lc_rs::Ed25519Algorithm::new_der(b"", b"").unwrap();
+//!
 //! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
 //!     &encoded,
 //!     &alg,
 //!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
 //! ).unwrap();
 //!
-//! println!("JWT Decoded: {:?}", decoded.claims());
+//! println!("JWT Decoded: {:?}", decoded.get_claims());
 //! ```
 
 use aws_lc_rs::signature::{self, KeyPair};

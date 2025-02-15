@@ -13,9 +13,9 @@
 //! use serde::{Deserialize, Serialize};
 //!
 //! // Initialize the signing algorithm with SHA-384
-//! let alg = HmacAlgorithm::new_der(SHALevel::SHA384, b"super-duper-secret").unwrap();
+//! let alg = HmacAlgorithm::new(SHALevel::SHA384, b"super-duper-secret");
 //! // Or you can use anything that can be converted to `AsRef<[u8]>`
-//! // let alg = HmacAlgorithm::new(SHALevel::SHA384, "this-is-a-str-secret").unwrap();
+//! // let alg = HmacAlgorithm::new(SHALevel::SHA384, "this-is-a-str-secret");
 //!
 //! // Sign a message
 //! #[derive(Serialize, Deserialize, Debug)]
@@ -23,7 +23,7 @@
 //!     text: String,
 //! }
 //!
-//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//! let data = SignedMessage { text: "Hello, world!".to_string() };
 //!
 //! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 //! println!("JWT Encoded: {}", encoded);
@@ -31,13 +31,20 @@
 //!
 //! Decoding:
 //! ```rust,no_run
+//! use jwt_lc_rs::validator::NoopValidator;
+//! # use serde::{Deserialize, Serialize};
+//! # #[derive(Serialize, Deserialize, Debug)]
+//! # struct SignedMessage { text: String };
+//! # let encoded = "test-data";
+//! # let alg = jwt_lc_rs::HmacAlgorithm::new(jwt_lc_rs::SHALevel::SHA384, b"super-duper-secret");
+//!
 //! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
 //!     &encoded,
 //!     &alg,
 //!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
 //! ).unwrap();
 //!
-//! println!("JWT Decoded: {:?}", decoded.claims());
+//! println!("JWT Decoded: {:?}", decoded.get_claims());
 //! ```
 
 use aws_lc_rs::constant_time::verify_slices_are_equal;
