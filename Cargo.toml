@@ -8,7 +8,7 @@ repository = "https://github.com/noaione/jwt-lc-rs"
 rust-version = "1.81.0"
 
 [package.metadata.docs.rs]
-features = ["fips", "es256k", "pem"]
+features = ["fips", "pem"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
@@ -17,7 +17,6 @@ aws-lc-rs = { version = "1.12.2", default-features = false, features = [
     "ring-io",
     "ring-sig-verify"
 ] }
-secp256k1 = { version = "0.30.0", default-features = false, features = ["alloc"], optional = true }
 base64 = "^0.22"
 serde = { version = "^1.0", features = ["derive"] }
 serde_json = "^1.0"
@@ -27,12 +26,11 @@ pem = { version = "3.0.4", optional = true }
 
 [dev-dependencies]
 serde = { version = "^1.0", features = ["derive"] }
-jwt-lc-rs = {  path = ".", features = ["fips", "es256k", "pem"] }
+jwt-lc-rs = {  path = ".", features = ["fips", "pem"] }
 
 [features]
 default = ["fips"]
 fips = ["aws-lc-rs/fips"]
 non_fips = ["aws-lc-rs/non-fips"]
 
-es256k = ["dep:secp256k1"]
 pem = ["dep:pem"]

@@ -6,7 +6,6 @@ pub(crate) enum Classification {
     Ed,
     Rsa,
     RsaPss,
-    Secp256k1,
 }
 
 impl Classification {
@@ -16,7 +15,6 @@ impl Classification {
             Self::Ed => "Ed25519",
             Self::Rsa => "RSA",
             Self::RsaPss => "RSA-PSS",
-            Self::Secp256k1 => "secp256k1",
         }
     }
 }
@@ -52,20 +50,6 @@ impl PemEncodedKey {
                 kind: PemKind::Private,
                 content: parsed.contents().to_vec(),
                 classify: classify_pem(&asn_parse).unwrap_or(Classification::Rsa),
-                asn1: asn_parse,
-                spki: false,
-            }),
-            "EC PUBLIC KEY" => Ok(Self {
-                kind: PemKind::Public,
-                content: parsed.contents().to_vec(),
-                classify: classify_pem(&asn_parse).unwrap_or(Classification::Ec),
-                asn1: asn_parse,
-                spki: false,
-            }),
-            "EC PRIVATE KEY" => Ok(Self {
-                kind: PemKind::Private,
-                content: parsed.contents().to_vec(),
-                classify: classify_pem(&asn_parse).unwrap_or(Classification::Ec),
                 asn1: asn_parse,
                 spki: false,
             }),
@@ -115,7 +99,6 @@ fn classify_pem(asn1: &[simple_asn1::ASN1Block]) -> Option<Classification> {
     // These should be constant but the macro requires
     // #![feature(const_vec_new)]
     let ec_public_key_oid = simple_asn1::oid!(1, 2, 840, 10_045, 2, 1);
-    let ec_secp256k1_key_oid = simple_asn1::oid!(1, 3, 132, 0, 10);
     let rsa_public_key_oid = simple_asn1::oid!(1, 2, 840, 113_549, 1, 1, 1);
     let rsa_pss_public_key_oid = simple_asn1::oid!(1, 2, 840, 113_549, 1, 1, 10);
     let ed25519_oid = simple_asn1::oid!(1, 3, 101, 112);
@@ -136,9 +119,6 @@ fn classify_pem(asn1: &[simple_asn1::ASN1Block]) -> Option<Classification> {
                 }
                 if oid == rsa_pss_public_key_oid {
                     return Some(Classification::RsaPss);
-                }
-                if oid == ec_secp256k1_key_oid {
-                    return Some(Classification::Secp256k1);
                 }
                 if oid == ed25519_oid {
                     return Some(Classification::Ed);

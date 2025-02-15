@@ -11,15 +11,11 @@ pub mod ecdsa;
 pub mod eddsa;
 pub mod hmac;
 pub mod rsa;
-#[cfg(feature = "es256k")]
-pub mod secp256k1;
 
-pub use ecdsa::EcdsaAlgorithm;
+pub use ecdsa::{EcdsaAlgorithm, Secp256k1Algorithm};
 pub use eddsa::Ed25519Algorithm;
 pub use hmac::HmacAlgorithm;
 pub use rsa::{RsaAlgorithm, RsaPssAlgorithm};
-#[cfg(feature = "es256k")]
-pub use secp256k1::Secp256k1Algorithm;
 
 /// A trait for signing and verifying data
 pub trait SigningAlgorithm {
@@ -76,12 +72,11 @@ pub enum Algorithm {
     PS512,
     /// ECDSA using the P-256 curve and SHA-256.
     ES256,
-    /// ECDSA using the P-384 curve and SHA-384.
+    /// ECDSA using the P-384 curve and SHA3-384.
     ES384,
-    /// ECDSA using the P-521 curve and SHA-512.
+    /// ECDSA using the P-521 curve and SHA3-512.
     ES512,
-    /// secp256k1 using SHA3-256.
-    #[cfg(feature = "es256k")]
+    /// ECDSA using the P-256K1 curve and SHA3-256.
     ES256K,
     /// Ed25519 PCKS#8 v1 or v2.
     EdDSA,

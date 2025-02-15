@@ -7,13 +7,13 @@ struct Basic {
 }
 
 #[test]
-fn test_secp256k1_round_trip() {
-    let private: &[u8; 32] = include_bytes!("private_secp256k1.der");
-    let public = include_bytes!("public_secp256k1.der");
-    let alg = Secp256k1Algorithm::new_der(private, public).unwrap();
+fn test_secp256k1_round_trip_pem() {
+    let private = include_str!("private_ecdsa_p256k1.pem");
+    let public = include_str!("public_ecdsa_p256k1.pem");
+    let alg = Secp256k1Algorithm::new_pkcs8_pem(private, public).unwrap();
 
     let data = Basic {
-        data: "Hello Ed25519 world".to_string(),
+        data: "Hello ECDSA P-256K1 world".to_string(),
     };
 
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
@@ -21,5 +21,57 @@ fn test_secp256k1_round_trip() {
         jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
-    assert_eq!(decoded.get_claims().data, "Hello Ed25519 world");
+    assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
+}
+
+#[test]
+fn test_secp256k1_round_trip_der() {
+    let private = include_bytes!("private_ecdsa_p256k1.der");
+    let public = include_bytes!("public_ecdsa_p256k1.der");
+    let alg = Secp256k1Algorithm::new_pkcs8(private, public).unwrap();
+
+    let data = Basic {
+        data: "Hello ECDSA P-256K1 world".to_string(),
+    };
+
+    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let decoded: jwt_lc_rs::TokenData<Basic> =
+        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+
+    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
+}
+
+#[test]
+fn test_secp256k1_round_trip_no_public_pem() {
+    let private = include_str!("private_ecdsa_p256k1.pem");
+    let alg = Secp256k1Algorithm::new_pkcs8_pem_from_private_key(private).unwrap();
+
+    let data = Basic {
+        data: "Hello ECDSA P-256K1 world".to_string(),
+    };
+
+    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let decoded: jwt_lc_rs::TokenData<Basic> =
+        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+
+    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
+}
+
+#[test]
+fn test_secp256k1_round_trip_no_public_der() {
+    let private = include_bytes!("private_ecdsa_p256k1.der");
+    let alg = Secp256k1Algorithm::new_pkcs8_from_private_key(private).unwrap();
+
+    let data = Basic {
+        data: "Hello ECDSA P-256K1 world".to_string(),
+    };
+
+    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let decoded: jwt_lc_rs::TokenData<Basic> =
+        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+
+    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
 }

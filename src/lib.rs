@@ -17,7 +17,7 @@
 //! - `ES256`
 //! - `ES384`
 //! - `ES512`
-//! - `ES256K` (via [`secp256k1`](https://docs.rs/secp256k1) crate)
+//! - `ES256K`
 //! - `EdDSA` (Ed25519)
 //!
 //! ## Supported native validations
@@ -49,11 +49,9 @@ pub mod validator;
 
 pub use models::*;
 use serde::{de::DeserializeOwned, Serialize};
-#[cfg(feature = "es256k")]
-pub use signing::Secp256k1Algorithm;
 pub use signing::{
     Algorithm, EcdsaAlgorithm, Ed25519Algorithm, HmacAlgorithm, RsaAlgorithm, RsaPssAlgorithm,
-    SHALevel, SigningAlgorithm,
+    SHALevel, Secp256k1Algorithm, SigningAlgorithm,
 };
 
 /// Re-export of [`simple_asn1::from_der`] function.
