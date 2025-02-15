@@ -10,7 +10,7 @@ struct Basic {
 fn test_secp256k1_round_trip_pem() {
     let private = include_str!("private_ecdsa_p256k1.pem");
     let public = include_str!("public_ecdsa_p256k1.pem");
-    let alg = Secp256k1Algorithm::new_pkcs8_pem(private, public).unwrap();
+    let alg = Secp256k1Algorithm::new_pem(private, public).unwrap();
 
     let data = Basic {
         data: "Hello ECDSA P-256K1 world".to_string(),
@@ -28,7 +28,7 @@ fn test_secp256k1_round_trip_pem() {
 fn test_secp256k1_round_trip_der() {
     let private = include_bytes!("private_ecdsa_p256k1.der");
     let public = include_bytes!("public_ecdsa_p256k1.der");
-    let alg = Secp256k1Algorithm::new_pkcs8(private, public).unwrap();
+    let alg = Secp256k1Algorithm::new_der(private, public).unwrap();
 
     let data = Basic {
         data: "Hello ECDSA P-256K1 world".to_string(),
@@ -45,7 +45,7 @@ fn test_secp256k1_round_trip_der() {
 #[test]
 fn test_secp256k1_round_trip_no_public_pem() {
     let private = include_str!("private_ecdsa_p256k1.pem");
-    let alg = Secp256k1Algorithm::new_pkcs8_pem_from_private_key(private).unwrap();
+    let alg = Secp256k1Algorithm::new_pem_from_private_key(private).unwrap();
 
     let data = Basic {
         data: "Hello ECDSA P-256K1 world".to_string(),
@@ -62,7 +62,7 @@ fn test_secp256k1_round_trip_no_public_pem() {
 #[test]
 fn test_secp256k1_round_trip_no_public_der() {
     let private = include_bytes!("private_ecdsa_p256k1.der");
-    let alg = Secp256k1Algorithm::new_pkcs8_from_private_key(private).unwrap();
+    let alg = Secp256k1Algorithm::new_der_from_private_key(private).unwrap();
 
     let data = Basic {
         data: "Hello ECDSA P-256K1 world".to_string(),

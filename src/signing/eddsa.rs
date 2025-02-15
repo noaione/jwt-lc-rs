@@ -1,4 +1,63 @@
-//! A EdDSA/Ed25519 algorithm for signing and verifying
+//! An EdDSA/ED25519 algorithm for signing and verifying
+//!
+//! **NOTE**:
+//! We only support EdDSA/ED25519 in PKCS#8 encoding format.
+//!
+//! The key usually starts with:
+//! ```
+//! -----BEGIN PUBLIC KEY-----
+//! ```
+//!
+//! ## Generating
+//!
+//! You can use `openssl` to generate a key pair:
+//! ```bash
+//! openssl genpkey -algorithm ED25519 -out private_ed25519.pem
+//! openssl pkey -in private_ed25519.pem -pubout -out public_ed25519.pem
+//! ```
+//!
+//! To convert to `DER` format:
+//! ```bash
+//! openssl pkcs8 -topk8 -in private_ed25519.pem -outform DER -nocrypt -out private_ed25519.der
+//! openssl pkey -in public_ed25519.pem -pubin -outform DER -out public_ed25519.der
+//! ```
+//!
+//! ## Examples
+//!
+//! Using the DER-encoded format:
+//! ```rust,no_run
+//! use jwt_lc_rs::Ed25519Algorithm;
+//! use serde::{Deserialize, Serialize};
+//!
+//! // Import key-pair
+//! let private = include_bytes!("private_ed25519.der");
+//! let public = include_bytes!("public_ed25519.der");
+//!
+//! // Initialize the signing algorithm
+//! let alg = Ed25519Algorithm::new_der(private, public).unwrap();
+//!
+//! // Sign a message
+//! #[derive(Serialize, Deserialize, Debug)]
+//! struct SignedMessage {
+//!     text: String,
+//! }
+//!
+//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//!
+//! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+//! println!("JWT Encoded: {}", encoded);
+//! ```
+//!
+//! Decoding:
+//! ```rust,no_run
+//! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
+//!     &encoded,
+//!     &alg,
+//!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
+//! ).unwrap();
+//!
+//! println!("JWT Decoded: {:?}", decoded.claims());
+//! ```
 
 use aws_lc_rs::signature::{self, KeyPair};
 

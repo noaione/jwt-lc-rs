@@ -2,7 +2,7 @@
 
 A simple library for generating and verifying JWTs using [aws-lc-rs](https://github.com/aws/aws-lc-rs)
 
-This library only includes a tiny subset of the RFC specs.
+This library does not implement the JWS specifications from the RFCs.
 
 ## Supported algorithms
 - `HS256`
@@ -38,7 +38,7 @@ This library only includes a tiny subset of the RFC specs.
 
 ## Examples
 
-TODO
+See the tests for examples.
 
 ## License
 

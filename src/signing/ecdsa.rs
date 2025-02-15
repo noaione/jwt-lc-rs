@@ -1,4 +1,124 @@
-//! A ECDSA algorithm for signing and verifying
+//! An ECDSA algorithm for signing and verifying
+//!
+//! The following curves variant are supported:
+//! - `P-256` (with SHA-256)
+//! - `P-384` (with SHA3-384)
+//! - `P-521` (with SHA3-512)
+//! - `P-256K1/secp256k1` (with SHA3-256)
+//!
+//! **NOTE**:
+//! We only support ECDSA in PKCS#8 encoding format.
+//!
+//! The key usually starts with:
+//! ```
+//! -----BEGIN PUBLIC KEY-----
+//! ```
+//!
+//! Instead of:
+//! ```
+//! -----BEGIN EC PUBLIC KEY-----
+//! ```
+//!
+//! ## Generating
+//!
+//! You can use `openssl` to generate a key pair:
+//! ```bash
+//! # NIST P-256
+//! openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out private_ecdsa_p256.pem
+//! openssl pkey -in private_ecdsa_p256.pem -pubout -out public_ecdsa_p256.pem
+//!
+//! # NIST P-384
+//! openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -out private_ecdsa_p384.pem
+//! openssl pkey -in private_ecdsa_p384.pem -pubout -out public_ecdsa_p384.pem
+//!
+//! # NIST P-521
+//! openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-521 -out private_ecdsa_p521.pem
+//! openssl pkey -in private_ecdsa_p521.pem -pubout -out public_ecdsa_p521.pem
+//!
+//! # secp256k1
+//! openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:secp256k1 -out private_ecdsa_p256k1.pem
+//! openssl pkey -in private_ecdsa_p256k1.pem -pubout -out public_ecdsa_p256k1.pem
+//! ```
+//!
+//! To convert to `DER` format:
+//! ```bash
+//! # Convert private keys from PEM to DER
+//! openssl pkcs8 -topk8 -in private_ecdsa_p256.der -outform DER -nocrypt -out private_ecdsa_p256.der
+//! openssl pkcs8 -topk8 -in private_ecdsa_p384.der -outform DER -nocrypt -out private_ecdsa_p384.der
+//! openssl pkcs8 -topk8 -in private_ecdsa_p521.der -outform DER -nocrypt -out private_ecdsa_p521.der
+//! openssl pkcs8 -topk8 -in private_ecdsa_p256k1.der -outform DER -nocrypt -out private_ecdsa_p256k1.der
+//!
+//! # Convert public keys from PEM to DER
+//! openssl pkey -in public_ecdsa_p256.pem -pubin -outform DER -out public_ecdsa_p256.der
+//! openssl pkey -in public_ecdsa_p384.pem -pubin -outform DER -out public_ecdsa_p384.der
+//! openssl pkey -in public_ecdsa_p521.pem -pubin -outform DER -out public_ecdsa_p521.der
+//! openssl pkey -in public_ecdsa_p256k1.pem -pubin -outform DER -out public_ecdsa_p256k1.der
+//! ```
+//!
+//! ## Examples
+//!
+//! **NOTE**: You should use the same [`SHALevel`] with your curve.
+//! - `P-256` -> [`SHALevel::SHA256`]
+//! - `P-384` -> [`SHALevel::SHA384`]
+//! - `P-521` -> [`SHALevel::SHA512`]
+//!
+//! Using the DER-encoded format with NIST P-384 curves (SHA3-384):
+//! ```rust,no_run
+//! use jwt_lc_rs::{EcdsaAlgorithm, SHALevel};
+//! use serde::{Deserialize, Serialize};
+//!
+//! // Import key-pair
+//! let private = include_bytes!("private_ecdsa_p384.der");
+//! let public = include_bytes!("public_ecdsa_p384.der");
+//!
+//! // Initialize the signing algorithm
+//! let alg = EcdsaAlgorithm::new_der(SHALevel::SHA384, private, public).unwrap();
+//!
+//! // Sign a message
+//! #[derive(Serialize, Deserialize, Debug)]
+//! struct SignedMessage {
+//!     text: String,
+//! }
+//!
+//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//!
+//! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+//! println!("JWT Encoded: {}", encoded);
+//! ```
+//!
+//! Decoding:
+//! ```rust,no_run
+//! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
+//!     &encoded,
+//!     &alg,
+//!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
+//! ).unwrap();
+//!
+//! println!("JWT Decoded: {:?}", decoded.claims());
+//! ```
+//!
+//! Using **P-256K1**:
+//! ```rust,no_run
+//! use jwt_lc_rs::Secp256k1Algorithm;
+//! use serde::{Deserialize, Serialize};
+//!
+//! // Import key-pair
+//! let private = include_bytes!("private_ecdsa_p256k1.der");
+//! let public = include_bytes!("public_ecdsa_p256k1.der");
+//!
+//! // Initialize the signing algorithm
+//! let alg = Secp256k1Algorithm::new_der(private, public).unwrap();
+//!
+//! // Sign a message
+//! #[derive(Serialize, Deserialize, Debug)]
+//! struct SignedMessage {
+//!     text: String,
+//! }
+//!
+//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+//! println!("JWT Encoded: {}", encoded);
+//! ```
 
 use aws_lc_rs::{
     rand,
@@ -38,7 +158,7 @@ impl EcdsaAlgorithm {
     /// Create a new [`EcdsaAlgorithm`] from PKCS#8 bytes data
     ///
     /// Given a private key and a public key.
-    pub fn new_pkcs8(
+    pub fn new_der(
         hash: SHALevel,
         private_key: &[u8],
         public_key: &[u8],
@@ -55,7 +175,7 @@ impl EcdsaAlgorithm {
     /// Create a new [`EcdsaAlgorithm`] from PKCS#8 bytes data
     ///
     /// Given a private key.
-    pub fn new_pkcs8_from_private_key(
+    pub fn new_der_from_private_key(
         hash: SHALevel,
         private_key: &[u8],
     ) -> Result<Self, crate::errors::Error> {
@@ -71,7 +191,7 @@ impl EcdsaAlgorithm {
     ///
     /// Given a [`SHALevel`], a private key, and a public key.
     #[cfg(feature = "pem")]
-    pub fn new_pkcs8_pem<B: AsRef<[u8]>>(
+    pub fn new_pem<B: AsRef<[u8]>>(
         hash: SHALevel,
         private_key: B,
         public_key: B,
@@ -112,7 +232,7 @@ impl EcdsaAlgorithm {
     ///
     /// Given a [`SHALevel`] and a private key.
     #[cfg(feature = "pem")]
-    pub fn new_pkcs8_pem_from_private_key<B: AsRef<[u8]>>(
+    pub fn new_pem_from_private_key<B: AsRef<[u8]>>(
         hash: SHALevel,
         private_key: B,
     ) -> Result<Self, crate::errors::Error> {
@@ -174,7 +294,7 @@ impl Secp256k1Algorithm {
     /// Create a new [`Secp256k1Algorithm`] from PKCS#8 bytes data
     ///
     /// Given a private key and a public key.
-    pub fn new_pkcs8(private_key: &[u8], public_key: &[u8]) -> Result<Self, crate::errors::Error> {
+    pub fn new_der(private_key: &[u8], public_key: &[u8]) -> Result<Self, crate::errors::Error> {
         let kp = signature::EcdsaKeyPair::from_pkcs8(
             &signature::ECDSA_P256K1_SHA3_256_FIXED_SIGNING,
             private_key,
@@ -192,7 +312,7 @@ impl Secp256k1Algorithm {
     /// Create a new [`Secp256k1Algorithm`] from PKCS#8 bytes data
     ///
     /// Given a private key.
-    pub fn new_pkcs8_from_private_key(private_key: &[u8]) -> Result<Self, crate::errors::Error> {
+    pub fn new_der_from_private_key(private_key: &[u8]) -> Result<Self, crate::errors::Error> {
         let kp = signature::EcdsaKeyPair::from_pkcs8(
             &signature::ECDSA_P256K1_SHA3_256_FIXED_SIGNING,
             private_key,
@@ -211,7 +331,7 @@ impl Secp256k1Algorithm {
     ///
     /// Given a [`SHALevel`], a private key, and a public key.
     #[cfg(feature = "pem")]
-    pub fn new_pkcs8_pem<B: AsRef<[u8]>>(
+    pub fn new_pem<B: AsRef<[u8]>>(
         private_key: B,
         public_key: B,
     ) -> Result<Self, crate::errors::Error> {
@@ -253,7 +373,7 @@ impl Secp256k1Algorithm {
     ///
     /// Given a [`SHALevel`] and a private key.
     #[cfg(feature = "pem")]
-    pub fn new_pkcs8_pem_from_private_key<B: AsRef<[u8]>>(
+    pub fn new_pem_from_private_key<B: AsRef<[u8]>>(
         private_key: B,
     ) -> Result<Self, crate::errors::Error> {
         let private_pem = crate::pem::PemEncodedKey::read(private_key)?;

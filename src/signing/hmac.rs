@@ -1,4 +1,44 @@
 //! A HMAC algorithm for signing and verifying
+//!
+//! We support the following SHAs:
+//! - `SHA-256` ([`SHALevel::SHA256`])
+//! - `SHA-384` ([`SHALevel::SHA384`])
+//! - `SHA-512` ([`SHALevel::SHA512`])
+//!
+//! ## Examples
+//!
+//! Encoding the JWTs:
+//! ```rust,no_run
+//! use jwt_lc_rs::{HmacAlgorithm, SHALevel};
+//! use serde::{Deserialize, Serialize};
+//!
+//! // Initialize the signing algorithm with SHA-384
+//! let alg = HmacAlgorithm::new_der(SHALevel::SHA384, b"super-duper-secret").unwrap();
+//! // Or you can use anything that can be converted to `AsRef<[u8]>`
+//! // let alg = HmacAlgorithm::new(SHALevel::SHA384, "this-is-a-str-secret").unwrap();
+//!
+//! // Sign a message
+//! #[derive(Serialize, Deserialize, Debug)]
+//! struct SignedMessage {
+//!     text: String,
+//! }
+//!
+//! let data = SignedMessage { text: "Hello, world!".to_string() }
+//!
+//! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+//! println!("JWT Encoded: {}", encoded);
+//! ```
+//!
+//! Decoding:
+//! ```rust,no_run
+//! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
+//!     &encoded,
+//!     &alg,
+//!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
+//! ).unwrap();
+//!
+//! println!("JWT Decoded: {:?}", decoded.claims());
+//! ```
 
 use aws_lc_rs::constant_time::verify_slices_are_equal;
 
@@ -14,15 +54,15 @@ pub struct HmacAlgorithm {
 impl HmacAlgorithm {
     /// Create a new [`HmacAlgorithm`]
     ///
-    /// Given a [`SHALevel`] and a secret key
-    pub fn new(hash: SHALevel, secret: &[u8]) -> Self {
+    /// Given a [`SHALevel`] and a secret key that can be any type that implements `AsRef<[u8]>`
+    pub fn new<B: AsRef<[u8]>>(hash: SHALevel, secret: B) -> Self {
         let alg = match hash {
             SHALevel::SHA256 => aws_lc_rs::hmac::HMAC_SHA256,
             SHALevel::SHA384 => aws_lc_rs::hmac::HMAC_SHA384,
             SHALevel::SHA512 => aws_lc_rs::hmac::HMAC_SHA512,
         };
 
-        let key = aws_lc_rs::hmac::Key::new(alg, secret);
+        let key = aws_lc_rs::hmac::Key::new(alg, secret.as_ref());
 
         Self { key, hash }
     }

@@ -2,7 +2,7 @@
 //!
 //! A simple library for generating and verifying JWTs using [`aws-lc-rs`](https://docs.rs/aws-lc-rs)
 //!
-//! This library only includes a tiny subset of the RFC specs.
+//! This library does not implement the JWS specifications from the RFCs.
 //!
 //! ## Supported algorithms
 //! - `HS256`
@@ -47,8 +47,9 @@ pub mod signing;
 pub mod utils;
 pub mod validator;
 
-pub use models::*;
+pub use models::{ClaimsForValidation, Header, TokenData};
 use serde::{de::DeserializeOwned, Serialize};
+/// Re-export of our signing algorithms
 pub use signing::{
     Algorithm, EcdsaAlgorithm, Ed25519Algorithm, HmacAlgorithm, RsaAlgorithm, RsaPssAlgorithm,
     SHALevel, Secp256k1Algorithm, SigningAlgorithm,

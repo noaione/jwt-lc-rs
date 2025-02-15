@@ -31,3 +31,23 @@ fn test_hmac_round_trip() {
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
+
+#[test]
+fn test_hmac_with_string_round_trip() {
+    let secret = "super-duper-secret";
+
+    for hash in SHA_TEST {
+        let alg = HmacAlgorithm::new(*hash, secret);
+        let data_txt = format!("Hello new world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let decoded: TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+
+        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}

@@ -4,7 +4,8 @@ use std::collections::HashSet;
 
 use serde::de::DeserializeOwned;
 
-use crate::{is_subset, ClaimsForValidation, MaybeMultiString, TryParse};
+use crate::models::{is_subset, MaybeMultiString, TryParse};
+use crate::ClaimsForValidation;
 
 /// A trait for validating token data
 pub trait Validator {
