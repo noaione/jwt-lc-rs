@@ -67,6 +67,13 @@ impl<T> TokenData<T> {
         &self.claims
     }
 
+    /// Get the inner claims of the token
+    ///
+    /// This will move the claims out of the `TokenData` and return them.
+    pub fn into_claims(self) -> T {
+        self.claims
+    }
+
     /// Get a reference to the header of the token
     ///
     /// This is the part of the token that contains the type of the token and the algorithm used
