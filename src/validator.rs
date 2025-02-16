@@ -2,23 +2,15 @@
 
 use std::collections::HashSet;
 
-use serde::de::DeserializeOwned;
-
 use crate::models::{is_subset, MaybeMultiString, TryParse};
 use crate::ClaimsForValidation;
 
 /// A trait for validating token data
-pub trait Validator {
+pub trait Validation {
     /// Validate the token data from the deserialized [`ClaimsForValidation`] information.
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
-    ) -> Result<(), crate::errors::ValidationError>;
-
-    /// Validate the given deserialized data
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        data: &T,
     ) -> Result<(), crate::errors::ValidationError>;
 }
 
@@ -38,7 +30,7 @@ impl IssuerValidator {
     }
 }
 
-impl Validator for IssuerValidator {
+impl Validation for IssuerValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -70,14 +62,6 @@ impl Validator for IssuerValidator {
             )),
         }
     }
-
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        _: &T,
-    ) -> Result<(), crate::errors::ValidationError> {
-        // We don't verify any data here
-        Ok(())
-    }
 }
 
 /// Validate the `aud` or Audience claim
@@ -96,7 +80,7 @@ impl AudienceValidator {
     }
 }
 
-impl Validator for AudienceValidator {
+impl Validation for AudienceValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -128,14 +112,6 @@ impl Validator for AudienceValidator {
             )),
         }
     }
-
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        _: &T,
-    ) -> Result<(), crate::errors::ValidationError> {
-        // We don't verify any data here
-        Ok(())
-    }
 }
 
 /// Validate the `sub` or Subject claim
@@ -154,7 +130,7 @@ impl SubjectValidator {
     }
 }
 
-impl Validator for SubjectValidator {
+impl Validation for SubjectValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -177,17 +153,9 @@ impl Validator for SubjectValidator {
             }
         }
     }
-
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        _: &T,
-    ) -> Result<(), crate::errors::ValidationError> {
-        // We don't verify any data here
-        Ok(())
-    }
 }
 
-/// Validate the `sub` or Subject claim
+/// Validate the `exp` or Expiry claim
 pub struct ExpiryValidator {
     expiry: u64,
     grace_period: u64,
@@ -216,9 +184,22 @@ impl ExpiryValidator {
         self.grace_period = grace_period;
         self
     }
+
+    /// Create a new [`ExpiryValidator`] from the current UNIX timestamp.
+    ///
+    /// Internally this use [`std::time::SystemTime`], so this follows your
+    /// system clock. If your system time is before the [`UNIX EPOCH`](std::time::SystemTime::UNIX_EPOCH), this will
+    /// set the `exp` to 0.
+    pub fn now() -> Self {
+        let current = std::time::SystemTime::now();
+        match current.duration_since(std::time::SystemTime::UNIX_EPOCH) {
+            Ok(duration) => Self::new(duration.as_secs()),
+            Err(_) => Self::new(0u64),
+        }
+    }
 }
 
-impl Validator for ExpiryValidator {
+impl Validation for ExpiryValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -249,13 +230,6 @@ impl Validator for ExpiryValidator {
             )),
         }
     }
-
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        _: &T,
-    ) -> Result<(), crate::errors::ValidationError> {
-        Ok(())
-    }
 }
 
 /// Validate the `nbf` or Not Before claim
@@ -285,7 +259,7 @@ impl NotBeforeValidator {
     }
 }
 
-impl Validator for NotBeforeValidator {
+impl Validation for NotBeforeValidator {
     fn validate(
         &self,
         data: &ClaimsForValidation<'_>,
@@ -308,29 +282,58 @@ impl Validator for NotBeforeValidator {
             )),
         }
     }
+}
 
-    fn validate_full<T: DeserializeOwned>(
+pub struct Validator {
+    validators: Vec<Box<dyn Validation>>,
+}
+
+impl Validator {
+    /// Create a new [`Validator`] instances
+    pub fn new(validators: Vec<Box<dyn Validation>>) -> Self {
+        Self { validators }
+    }
+
+    /// Add a new validator to the list of validators
+    ///
+    /// This method consumes the current [`Validator`] and returns a new [`Validator`]
+    /// with the additional validator.
+    ///
+    /// The validator is added to the end of the list of validators, and the
+    /// validation order is determined by the order of the validators in the
+    /// list.
+    pub fn add(mut self, validator: impl Validation + 'static) -> Self {
+        self.validators.push(Box::new(validator));
+        self
+    }
+
+    /// Add a new validator to the list of validators
+    ///
+    /// This method consumes the current [`Validator`] and returns a new [`Validator`]
+    /// with the additional validator.
+    ///
+    /// The validator is added to the end of the list of validators, and the
+    /// validation order is determined by the order of the validators in the
+    /// list.
+    pub fn add_boxed(mut self, validator: Box<dyn Validation>) -> Self {
+        self.validators.push(validator);
+        self
+    }
+
+    /// Validate a token using a set of validators
+    pub(crate) fn validate(
         &self,
-        _: &T,
+        data: &ClaimsForValidation<'_>,
     ) -> Result<(), crate::errors::ValidationError> {
+        for validator in &self.validators {
+            validator.validate(data)?
+        }
         Ok(())
     }
 }
 
-/// A simple validator that does nothing
-///
-/// Used if you don't want to do any extra validation except signature checking.
-pub struct NoopValidator;
-
-impl Validator for NoopValidator {
-    fn validate(&self, _: &ClaimsForValidation<'_>) -> Result<(), crate::errors::ValidationError> {
-        Ok(())
-    }
-
-    fn validate_full<T: DeserializeOwned>(
-        &self,
-        _: &T,
-    ) -> Result<(), crate::errors::ValidationError> {
-        Ok(())
+impl Default for Validator {
+    fn default() -> Self {
+        Self::new(vec![])
     }
 }

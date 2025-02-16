@@ -32,9 +32,9 @@
 //! - `aud` (Audience)
 //! - `exp` (Expiry)
 //! - `nbf` (Not before)
-//! - Any other custom validation can be implemented using the [`Validator`] trait
+//! - Any other custom validation can be implemented using the [`Validation`] trait
 //!
-//! **Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the [`Validator`] trait.
+//! **Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the [`Validation`] trait.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -65,9 +65,9 @@ use validator::Validator;
 ///
 /// This function will error if the `SigningAlgorithm` fails to sign the message or if the
 /// `data` cannot be serialized to JSON.
-pub fn encode<T: Serialize, S: SigningAlgorithm>(
+pub fn encode<T: Serialize>(
     data: &T,
-    signer: &S,
+    signer: &impl SigningAlgorithm,
 ) -> Result<String, crate::errors::Error> {
     let header = Header::from_signer(signer);
 
@@ -81,7 +81,7 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
 }
 
 /// Decode a JWT token into a deserialized type using a given [`SigningAlgorithm`] and a set of
-/// data [`Validator`].
+/// data [`Validation`].
 ///
 /// # Errors
 ///
@@ -96,11 +96,11 @@ pub fn encode<T: Serialize, S: SigningAlgorithm>(
 ///
 /// Validators are used to validate the claims and the deserialized data. The validators are
 /// checked in order, and if any of them fail, the function will return an error.
-/// If you don't want to validate the claims, you can give a [`validator::NoopValidator`].
-pub fn decode<T: DeserializeOwned, S: SigningAlgorithm>(
+/// If you don't want to validate the claims, you can use [`validator::Validator::default`].
+pub fn decode<T: DeserializeOwned>(
     token: &str,
-    signer: &S,
-    validator: &[impl Validator],
+    signer: &impl SigningAlgorithm,
+    validator: &Validator,
 ) -> Result<TokenData<T>, crate::errors::Error> {
     let (signature, message) = split_two(token)?;
     let (claims_or_data, header) = split_two(message)?;
@@ -130,12 +130,7 @@ pub fn decode<T: DeserializeOwned, S: SigningAlgorithm>(
         serde_json::from_slice::<T>(&claims_or_data).map_err(errors::Error::DeserializeError)?;
 
     // Validate claims
-    for v in validator {
-        // Validate claims part
-        v.validate(&claims)?;
-        // Validate actual data
-        v.validate_full::<T>(&data)?;
-    }
+    validator.validate(&claims)?;
 
     // Success!
     Ok(TokenData::new(header, data))

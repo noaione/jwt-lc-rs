@@ -1,5 +1,5 @@
 use jwt_lc_rs::{
-    utils::extract_first_bitstring, validator::NoopValidator, RsaAlgorithm, SigningAlgorithm,
+    utils::extract_first_bitstring, validator::Validator, RsaAlgorithm, SigningAlgorithm,
 };
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ fn test_rsa_2048_round_trip_pem() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -57,7 +57,7 @@ fn test_rsa_2048_round_trip_der() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -79,7 +79,7 @@ fn test_rsa_2048_round_trip_no_public_pem() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -101,7 +101,7 @@ fn test_rsa_2048_round_trip_no_public_der() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -124,7 +124,7 @@ fn test_rsa_4096_round_trip_pem() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -151,7 +151,7 @@ fn test_rsa_4096_round_trip_der() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -173,7 +173,7 @@ fn test_rsa_4096_round_trip_no_public_pem() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -195,7 +195,7 @@ fn test_rsa_4096_round_trip_no_public_der() {
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);

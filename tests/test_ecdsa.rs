@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::NoopValidator, EcdsaAlgorithm, SigningAlgorithm};
+use jwt_lc_rs::{validator::Validator, EcdsaAlgorithm, SigningAlgorithm};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,7 +21,7 @@ fn test_ecdsa_p256_round_trip_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -42,7 +42,7 @@ fn test_ecdsa_p256_round_trip_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -63,7 +63,7 @@ fn test_ecdsa_p384_round_trip_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -84,7 +84,7 @@ fn test_ecdsa_p384_round_trip_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -105,7 +105,7 @@ fn test_ecdsa_p521_round_trip_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -126,7 +126,7 @@ fn test_ecdsa_p521_round_trip_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -147,7 +147,7 @@ fn test_ecdsa_p256_round_trip_no_public_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -168,7 +168,7 @@ fn test_ecdsa_p256_round_trip_no_public_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -189,7 +189,7 @@ fn test_ecdsa_p384_round_trip_no_public_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -210,7 +210,7 @@ fn test_ecdsa_p384_round_trip_no_public_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -231,7 +231,7 @@ fn test_ecdsa_p521_round_trip_no_public_pem() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
@@ -252,7 +252,7 @@ fn test_ecdsa_p521_round_trip_no_public_der() {
     let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
     assert_eq!(decoded.get_header().alg, alg.kind());
     assert_eq!(decoded.get_claims().data, data_txt);

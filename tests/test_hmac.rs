@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::NoopValidator, HmacAlgorithm, SigningAlgorithm, TokenData};
+use jwt_lc_rs::{validator::Validator, HmacAlgorithm, SigningAlgorithm, TokenData};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,7 +25,7 @@ fn test_hmac_round_trip() {
 
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
         let decoded: TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
@@ -45,7 +45,7 @@ fn test_hmac_with_string_round_trip() {
 
         let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
         let decoded: TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &[NoopValidator]).unwrap();
+            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
 
         assert_eq!(decoded.get_header().alg, alg.kind());
         assert_eq!(decoded.get_claims().data, data_txt);

@@ -88,7 +88,7 @@
 //!
 //! Decoding:
 //! ```rust,no_run
-//! use jwt_lc_rs::validator::NoopValidator;
+//! use jwt_lc_rs::validator::Validator;
 //! # use serde::{Deserialize, Serialize};
 //! # #[derive(Serialize, Deserialize, Debug)]
 //! # struct SignedMessage { text: String };
@@ -98,7 +98,7 @@
 //! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
 //!     &encoded,
 //!     &alg,
-//!     &[NoopValidator], // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
+//!     &Validator::default(), // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
 //! ).unwrap();
 //!
 //! println!("JWT Decoded: {:?}", decoded.get_claims());
