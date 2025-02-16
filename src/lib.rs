@@ -32,9 +32,9 @@
 //! - `aud` (Audience)
 //! - `exp` (Expiry)
 //! - `nbf` (Not before)
-//! - Any other custom validation can be implemented using the [`Validation`] trait
+//! - Any other custom validation can be implemented using the [`validator::Validation`] trait
 //!
-//! **Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the [`Validation`] trait.
+//! **Note**: While we don't provide validation for `jti` and `iat`, you can implement it using the [`validator::Validation`] trait.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -80,8 +80,8 @@ pub fn encode<T: Serialize>(
     Ok([message, signature].join("."))
 }
 
-/// Decode a JWT token into a deserialized type using a given [`SigningAlgorithm`] and a set of
-/// data [`Validation`].
+/// Decode a JWT token into a deserialized type using a given [`SigningAlgorithm`] and
+/// a set of validators via [`Validator`].
 ///
 /// # Errors
 ///
