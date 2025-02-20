@@ -23,17 +23,6 @@ pub struct Header {
 }
 
 impl Header {
-    /// Create a new JWT header from a signer.
-    ///
-    /// This method will create a new JWT header with the correct `typ` field set to `"JWT"` and the
-    /// `alg` field set to the algorithm used by the signer.
-    pub(crate) fn from_signer(signer: &impl crate::signing::SigningAlgorithm) -> Self {
-        Self {
-            typ: Some("JWT".to_string()),
-            alg: signer.kind(),
-        }
-    }
-
     /// Deserialize a JWT header from a base64url-encoded string.
     ///
     /// # Errors

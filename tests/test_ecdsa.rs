@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::Validator, EcdsaAlgorithm, SigningAlgorithm};
+use jwt_lc_rs::{validator::Validator, EcdsaAlgorithm, Signer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,12 +18,13 @@ fn test_ecdsa_p256_round_trip_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -39,12 +40,13 @@ fn test_ecdsa_p256_round_trip_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -60,12 +62,13 @@ fn test_ecdsa_p384_round_trip_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -81,12 +84,13 @@ fn test_ecdsa_p384_round_trip_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -102,12 +106,13 @@ fn test_ecdsa_p521_round_trip_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -123,12 +128,13 @@ fn test_ecdsa_p521_round_trip_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -144,12 +150,13 @@ fn test_ecdsa_p256_round_trip_no_public_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -165,12 +172,13 @@ fn test_ecdsa_p256_round_trip_no_public_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -186,12 +194,13 @@ fn test_ecdsa_p384_round_trip_no_public_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -207,12 +216,13 @@ fn test_ecdsa_p384_round_trip_no_public_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -228,12 +238,13 @@ fn test_ecdsa_p521_round_trip_no_public_pem() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }
 
@@ -249,11 +260,12 @@ fn test_ecdsa_p521_round_trip_no_public_der() {
         data: data_txt.clone(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ecdsa(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, data_txt);
 }

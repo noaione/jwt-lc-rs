@@ -25,7 +25,8 @@
 //!
 //! let data = SignedMessage { text: "Hello, world!".to_string() };
 //!
-//! let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+//! let signer = jwt_lc_rs::Signer::Hmac(alg);
+//! let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 //! println!("JWT Encoded: {}", encoded);
 //! ```
 //!
@@ -37,10 +38,11 @@
 //! # struct SignedMessage { text: String };
 //! # let encoded = "test-data";
 //! # let alg = jwt_lc_rs::HmacAlgorithm::new(jwt_lc_rs::SHALevel::SHA384, b"super-duper-secret");
+//! # let signer = jwt_lc_rs::Signer::Hmac(alg);
 //!
 //! let decoded: jwt_lc_rs::TokenData<SignedMessage> = jwt_lc_rs::decode(
 //!     &encoded,
-//!     &alg,
+//!     &signer,
 //!     &Validator::default(), // You can also use validator like `jwt_lc_rs::validator::ExpiryValidator`
 //! ).unwrap();
 //!

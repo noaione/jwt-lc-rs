@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::Validator, Ed25519Algorithm, SigningAlgorithm};
+use jwt_lc_rs::{validator::Validator, Ed25519Algorithm, Signer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,11 +16,12 @@ fn test_ed25519_round_trip_pem() {
         data: "Hello Ed25519 world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ed25519(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello Ed25519 world");
 }
 
@@ -33,10 +34,11 @@ fn test_ed25519_round_trip_no_public_pem() {
         data: "Hello Ed25519 private world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Ed25519(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello Ed25519 private world");
 }

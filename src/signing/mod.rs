@@ -81,3 +81,111 @@ pub enum Algorithm {
     /// Ed25519 PCKS#8 v1 or v2.
     EdDSA,
 }
+
+/// The algorithm or signer used for signing and verifying
+///
+/// See each of the algorithms for details
+pub enum Signer {
+    /// HMAC signer with SHA
+    ///
+    /// Wraps [`HmacAlgorithm`]
+    Hmac(HmacAlgorithm),
+    /// RSA v1.5 signer
+    ///
+    /// Wraps [`RsaAlgorithm`]
+    Rsa(RsaAlgorithm),
+    /// RSA PSS signer
+    ///
+    /// Wraps [`RsaPssAlgorithm`]
+    RsaPss(RsaPssAlgorithm),
+    /// ECDSA signer
+    ///
+    /// Wraps [`EcdsaAlgorithm`]
+    Ecdsa(EcdsaAlgorithm),
+    /// Secp256k1 signer
+    ///
+    /// Wraps [`Secp256k1Algorithm`]
+    Secp256k1(Secp256k1Algorithm),
+    /// EdDSA or Ed25519 signer
+    ///
+    /// Wraps [`Ed25519Algorithm`]
+    Ed25519(Ed25519Algorithm),
+}
+
+impl Signer {
+    /// Get the algorithm kind
+    pub fn kind(&self) -> Algorithm {
+        match self {
+            Signer::Hmac(alg) => alg.kind(),
+            Signer::Rsa(alg) => alg.kind(),
+            Signer::RsaPss(alg) => alg.kind(),
+            Signer::Ecdsa(alg) => alg.kind(),
+            Signer::Secp256k1(alg) => alg.kind(),
+            Signer::Ed25519(alg) => alg.kind(),
+        }
+    }
+
+    /// Forward the signing to the underlying algorithm
+    pub(crate) fn sign(&self, data: &[u8]) -> Result<String, crate::errors::Error> {
+        match self {
+            Signer::Hmac(alg) => alg.sign(data),
+            Signer::Rsa(alg) => alg.sign(data),
+            Signer::RsaPss(alg) => alg.sign(data),
+            Signer::Ecdsa(alg) => alg.sign(data),
+            Signer::Secp256k1(alg) => alg.sign(data),
+            Signer::Ed25519(alg) => alg.sign(data),
+        }
+    }
+
+    /// Forward the verification to the underlying algorithm
+    pub(crate) fn verify(
+        &self,
+        data: &[u8],
+        signature: &[u8],
+    ) -> Result<bool, crate::errors::Error> {
+        match self {
+            Signer::Hmac(alg) => alg.verify(data, signature),
+            Signer::Rsa(alg) => alg.verify(data, signature),
+            Signer::RsaPss(alg) => alg.verify(data, signature),
+            Signer::Ecdsa(alg) => alg.verify(data, signature),
+            Signer::Secp256k1(alg) => alg.verify(data, signature),
+            Signer::Ed25519(alg) => alg.verify(data, signature),
+        }
+    }
+}
+
+impl From<HmacAlgorithm> for Signer {
+    fn from(alg: HmacAlgorithm) -> Self {
+        Signer::Hmac(alg)
+    }
+}
+
+impl From<RsaAlgorithm> for Signer {
+    fn from(alg: RsaAlgorithm) -> Self {
+        Signer::Rsa(alg)
+    }
+}
+
+impl From<RsaPssAlgorithm> for Signer {
+    fn from(alg: RsaPssAlgorithm) -> Self {
+        Signer::RsaPss(alg)
+    }
+}
+
+impl From<EcdsaAlgorithm> for Signer {
+    fn from(alg: EcdsaAlgorithm) -> Self {
+        Signer::Ecdsa(alg)
+    }
+}
+
+impl From<Secp256k1Algorithm> for Signer {
+    fn from(alg: Secp256k1Algorithm) -> Self {
+        Signer::Secp256k1(alg)
+    }
+}
+
+impl From<Ed25519Algorithm> for Signer {
+    fn from(alg: Ed25519Algorithm) -> Self {
+        Signer::Ed25519(alg)
+    }
+}

@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::Validator, Secp256k1Algorithm, SigningAlgorithm};
+use jwt_lc_rs::{validator::Validator, Secp256k1Algorithm, Signer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -16,11 +16,12 @@ fn test_secp256k1_round_trip_pem() {
         data: "Hello ECDSA P-256K1 world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Secp256k1(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
 }
 
@@ -34,11 +35,12 @@ fn test_secp256k1_round_trip_der() {
         data: "Hello ECDSA P-256K1 world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Secp256k1(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
 }
 
@@ -51,11 +53,12 @@ fn test_secp256k1_round_trip_no_public_pem() {
         data: "Hello ECDSA P-256K1 world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Secp256k1(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
 }
 
@@ -68,10 +71,11 @@ fn test_secp256k1_round_trip_no_public_der() {
         data: "Hello ECDSA P-256K1 world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::Secp256k1(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello ECDSA P-256K1 world");
 }

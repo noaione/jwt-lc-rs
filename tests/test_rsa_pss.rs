@@ -1,4 +1,4 @@
-use jwt_lc_rs::{validator::Validator, RsaPssAlgorithm, SigningAlgorithm};
+use jwt_lc_rs::{validator::Validator, RsaPssAlgorithm, Signer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -13,7 +13,7 @@ const SHA_TEST: &[jwt_lc_rs::SHALevel; 3] = &[
 ];
 
 #[test]
-fn test_rsa_2048_sha256_round_trip_pem() {
+fn test_rsa_pss_2048_sha256_round_trip_pem() {
     let private = include_str!("private_rsa_pss_2048_sha256.pem");
     let public = include_str!("public_rsa_pss_2048_sha256.pem");
 
@@ -25,18 +25,139 @@ fn test_rsa_2048_sha256_round_trip_pem() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
 
 #[test]
-fn test_rsa_2048_sha256_round_trip_no_public_pem() {
+fn test_rsa_pss_4096_sha256_round_trip_pem() {
+    let private = include_str!("private_rsa_pss_4096_sha256.pem");
+    let public = include_str!("public_rsa_pss_4096_sha256.pem");
+
+    for hash in SHA_TEST {
+        let alg = RsaPssAlgorithm::new_pem(*hash, private, public).unwrap();
+
+        let data_txt = format!("Hello RSA PSS world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
+
+        let decoded: jwt_lc_rs::TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
+
+        assert_eq!(decoded.get_header().alg, signer.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}
+
+#[test]
+fn test_rsa_pss_2048_sha384_round_trip_pem() {
+    let private = include_str!("private_rsa_pss_2048_sha384.pem");
+    let public = include_str!("public_rsa_pss_2048_sha384.pem");
+
+    for hash in SHA_TEST {
+        let alg = RsaPssAlgorithm::new_pem(*hash, private, public).unwrap();
+
+        let data_txt = format!("Hello RSA PSS world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
+
+        let decoded: jwt_lc_rs::TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
+
+        assert_eq!(decoded.get_header().alg, signer.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}
+
+#[test]
+fn test_rsa_pss_4096_sha384_round_trip_pem() {
+    let private = include_str!("private_rsa_pss_4096_sha384.pem");
+    let public = include_str!("public_rsa_pss_4096_sha384.pem");
+
+    for hash in SHA_TEST {
+        let alg = RsaPssAlgorithm::new_pem(*hash, private, public).unwrap();
+
+        let data_txt = format!("Hello RSA PSS world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
+
+        let decoded: jwt_lc_rs::TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
+
+        assert_eq!(decoded.get_header().alg, signer.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}
+
+#[test]
+fn test_rsa_pss_2048_sha512_round_trip_pem() {
+    let private = include_str!("private_rsa_pss_2048_sha512.pem");
+    let public = include_str!("public_rsa_pss_2048_sha512.pem");
+
+    for hash in SHA_TEST {
+        let alg = RsaPssAlgorithm::new_pem(*hash, private, public).unwrap();
+
+        let data_txt = format!("Hello RSA PSS world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
+
+        let decoded: jwt_lc_rs::TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
+
+        assert_eq!(decoded.get_header().alg, signer.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}
+
+#[test]
+fn test_rsa_pss_4096_sha512_round_trip_pem() {
+    let private = include_str!("private_rsa_pss_4096_sha512.pem");
+    let public = include_str!("public_rsa_pss_4096_sha512.pem");
+
+    for hash in SHA_TEST {
+        let alg = RsaPssAlgorithm::new_pem(*hash, private, public).unwrap();
+
+        let data_txt = format!("Hello RSA PSS world: {:?}", hash);
+        let data = Basic {
+            data: data_txt.clone(),
+        };
+
+        let signer = Signer::RsaPss(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
+
+        let decoded: jwt_lc_rs::TokenData<Basic> =
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
+
+        assert_eq!(decoded.get_header().alg, signer.kind());
+        assert_eq!(decoded.get_claims().data, data_txt);
+    }
+}
+
+#[test]
+fn test_rsa_pss_2048_sha256_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_2048_sha256.pem");
 
     let alg =
@@ -46,17 +167,18 @@ fn test_rsa_2048_sha256_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }
 
 #[test]
-fn test_rsa_2048_sha384_round_trip_no_public_pem() {
+fn test_rsa_pss_2048_sha384_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_2048_sha384.pem");
 
     let alg =
@@ -66,17 +188,18 @@ fn test_rsa_2048_sha384_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }
 
 #[test]
-fn test_rsa_2048_sha512_round_trip_no_public_pem() {
+fn test_rsa_pss_2048_sha512_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_2048_sha512.pem");
 
     let alg =
@@ -86,17 +209,18 @@ fn test_rsa_2048_sha512_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }
 
 #[test]
-fn test_rsa_4096_sha256_round_trip_no_public_pem() {
+fn test_rsa_pss_4096_sha256_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_4096_sha256.pem");
 
     let alg =
@@ -106,17 +230,18 @@ fn test_rsa_4096_sha256_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }
 
 #[test]
-fn test_rsa_4096_sha384_round_trip_no_public_pem() {
+fn test_rsa_pss_4096_sha384_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_4096_sha384.pem");
 
     let alg =
@@ -126,17 +251,18 @@ fn test_rsa_4096_sha384_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }
 
 #[test]
-fn test_rsa_4096_sha512_round_trip_no_public_pem() {
+fn test_rsa_pss_4096_sha512_round_trip_no_public_pem() {
     let private = include_str!("private_rsa_pss_4096_sha512.pem");
 
     let alg =
@@ -146,11 +272,12 @@ fn test_rsa_4096_sha512_round_trip_no_public_pem() {
         data: "Hello RSA PSS world".to_string(),
     };
 
-    let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+    let signer = Signer::RsaPss(alg);
+    let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
     let decoded: jwt_lc_rs::TokenData<Basic> =
-        jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+        jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-    assert_eq!(decoded.get_header().alg, alg.kind());
+    assert_eq!(decoded.get_header().alg, signer.kind());
     assert_eq!(decoded.get_claims().data, "Hello RSA PSS world");
 }

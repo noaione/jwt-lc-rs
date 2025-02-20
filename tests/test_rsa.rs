@@ -1,6 +1,4 @@
-use jwt_lc_rs::{
-    utils::extract_first_bitstring, validator::Validator, RsaAlgorithm, SigningAlgorithm,
-};
+use jwt_lc_rs::{utils::extract_first_bitstring, validator::Validator, RsaAlgorithm, Signer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,12 +25,13 @@ fn test_rsa_2048_round_trip_pem() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -54,12 +53,13 @@ fn test_rsa_2048_round_trip_der() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -76,12 +76,13 @@ fn test_rsa_2048_round_trip_no_public_pem() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -98,12 +99,13 @@ fn test_rsa_2048_round_trip_no_public_der() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -121,12 +123,13 @@ fn test_rsa_4096_round_trip_pem() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -148,12 +151,13 @@ fn test_rsa_4096_round_trip_der() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -170,12 +174,13 @@ fn test_rsa_4096_round_trip_no_public_pem() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
@@ -192,12 +197,13 @@ fn test_rsa_4096_round_trip_no_public_der() {
             data: data_txt.clone(),
         };
 
-        let encoded = jwt_lc_rs::encode(&data, &alg).unwrap();
+        let signer = Signer::Rsa(alg);
+        let encoded = jwt_lc_rs::encode(&data, &signer).unwrap();
 
         let decoded: jwt_lc_rs::TokenData<Basic> =
-            jwt_lc_rs::decode(&encoded, &alg, &Validator::default()).unwrap();
+            jwt_lc_rs::decode(&encoded, &signer, &Validator::default()).unwrap();
 
-        assert_eq!(decoded.get_header().alg, alg.kind());
+        assert_eq!(decoded.get_header().alg, signer.kind());
         assert_eq!(decoded.get_claims().data, data_txt);
     }
 }
