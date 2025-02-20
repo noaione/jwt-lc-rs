@@ -17,7 +17,7 @@ This library does not implement the JWS specifications from the RFCs.
 - `ES256`
 - `ES384`
 - `ES512`
-- `ES256K`
+- `ES256K` (ECDSA P-256K1/secp256k1)
 - `EdDSA` (Ed25519)
 
 ## Supported native validations
