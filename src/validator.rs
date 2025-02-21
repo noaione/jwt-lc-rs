@@ -85,9 +85,9 @@ impl Validation for AudienceValidator {
         &self,
         data: &ClaimsForValidation<'_>,
     ) -> Result<(), crate::errors::ValidationError> {
-        match &data.iss {
-            TryParse::Parsed(MaybeMultiString::Single(iss)) => {
-                if !self.audiences.contains(&**iss) {
+        match &data.aud {
+            TryParse::Parsed(MaybeMultiString::Single(aud)) => {
+                if !self.audiences.contains(&**aud) {
                     Err(crate::errors::ValidationError::InvalidAudience(
                         self.audiences.clone(),
                     ))
@@ -95,8 +95,8 @@ impl Validation for AudienceValidator {
                     Ok(())
                 }
             }
-            TryParse::Parsed(MaybeMultiString::Multiple(iss)) => {
-                if !is_subset(&self.audiences, iss) {
+            TryParse::Parsed(MaybeMultiString::Multiple(aud)) => {
+                if !is_subset(&self.audiences, aud) {
                     Err(crate::errors::ValidationError::InvalidAudience(
                         self.audiences.clone(),
                     ))
@@ -211,7 +211,7 @@ impl Validation for ExpiryValidator {
                 } else {
                     // Grace period allows for some clock skew
                     // Use saturating to prevent underflow/overflow
-                    let sat_exp = exp.saturating_sub(self.grace_period);
+                    let sat_exp = exp.saturating_add(self.grace_period);
                     if sat_exp > self.expiry {
                         Ok(())
                     } else {
