@@ -1,6 +1,6 @@
 [package]
 name = "jwt-lc-rs"
-version = "0.1.0-dev"
+version = "0.1.1-dev"
 edition = "2021"
 authors = ["noaione <noaione@n4o.xyz>"]
 license = "Apache-2.0 OR MIT"
@@ -12,7 +12,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-aws-lc-rs = { version = "1.12.4", default-features = false, features = [
+aws-lc-rs = { version = "1.13.0", default-features = false, features = [
     "alloc",
     "fips",
     "ring-io",
