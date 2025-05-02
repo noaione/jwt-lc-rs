@@ -57,6 +57,7 @@ pub enum Error {
     /// Error when trying to parse a bytes data to ASM.1
     ///
     /// This is a wrapper for [`simple_asn1::ASN1DecodeErr`]
+    #[cfg(feature = "pem")]
     ASN1ParseError(simple_asn1::ASN1DecodeErr),
 }
 
@@ -116,6 +117,7 @@ impl From<pem::PemError> for Error {
     }
 }
 
+#[cfg(feature = "pem")]
 impl From<simple_asn1::ASN1DecodeErr> for Error {
     fn from(e: simple_asn1::ASN1DecodeErr) -> Self {
         Error::ASN1ParseError(e)
