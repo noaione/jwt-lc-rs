@@ -157,44 +157,16 @@ impl Validation for SubjectValidator {
 
 /// Validate the `exp` or Expiry claim
 pub struct ExpiryValidator {
-    expiry: u64,
     grace_period: u64,
 }
 
 impl ExpiryValidator {
     /// Create a new [`ExpiryValidator`]
     ///
-    /// Accepts timestamp-like object, which can be converted to a [`u64`]
-    ///
-    /// By default, this has 5 seconds of grace period if it's timestamp format.
-    pub fn new(expiry: impl Into<u64>) -> Self {
+    /// Accepts a grace period in seconds, which will be converted to a [`u64`]
+    pub fn new(grace_period: impl Into<u64>) -> Self {
         Self {
-            expiry: expiry.into(),
-            grace_period: 5,
-        }
-    }
-
-    /// Set the grace period for the validator
-    ///
-    /// If the token has expired, allow up to `grace_period` seconds of extra
-    /// time before actually rejecting the token.
-    ///
-    /// The default is 5 seconds.
-    pub fn with_grace_period(mut self, grace_period: u64) -> Self {
-        self.grace_period = grace_period;
-        self
-    }
-
-    /// Create a new [`ExpiryValidator`] from the current UNIX timestamp.
-    ///
-    /// Internally this use [`std::time::SystemTime`], so this follows your
-    /// system clock. If your system time is before the [`UNIX EPOCH`](std::time::SystemTime::UNIX_EPOCH), this will
-    /// set the `exp` to 0.
-    pub fn now() -> Self {
-        let current = std::time::SystemTime::now();
-        match current.duration_since(std::time::SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::new(duration.as_secs()),
-            Err(_) => Self::new(0u64),
+            grace_period: grace_period.into(),
         }
     }
 }
@@ -206,19 +178,17 @@ impl Validation for ExpiryValidator {
     ) -> Result<(), crate::errors::ValidationError> {
         match data.exp {
             TryParse::Parsed(exp) => {
-                if exp > self.expiry {
+                let now_time = now_timestamp();
+                if exp > now_time {
                     Ok(())
                 } else {
                     // Grace period allows for some clock skew
                     // Use saturating to prevent underflow/overflow
                     let sat_exp = exp.saturating_add(self.grace_period);
-                    if sat_exp > self.expiry {
+                    if sat_exp > now_time {
                         Ok(())
                     } else {
-                        Err(crate::errors::ValidationError::TokenExpired(
-                            exp,
-                            self.expiry,
-                        ))
+                        Err(crate::errors::ValidationError::TokenExpired(exp, now_time))
                     }
                 }
             }
@@ -251,11 +221,7 @@ impl NotBeforeValidator {
     /// system clock. If your system time is before the [`UNIX EPOCH`](std::time::SystemTime::UNIX_EPOCH), this will
     /// set the `nbf` to 0.
     pub fn now() -> Self {
-        let current = std::time::SystemTime::now();
-        match current.duration_since(std::time::SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::new(duration.as_secs()),
-            Err(_) => Self::new(0u64),
-        }
+        Self::new(now_timestamp())
     }
 }
 
@@ -335,5 +301,16 @@ impl Validator {
 impl Default for Validator {
     fn default() -> Self {
         Self::new(vec![])
+    }
+}
+
+/// Quickly get the current timestamp
+///
+/// If failed to convert the duration since, it will return 0
+fn now_timestamp() -> u64 {
+    let current = std::time::SystemTime::now();
+    match current.duration_since(std::time::SystemTime::UNIX_EPOCH) {
+        Ok(duration) => duration.as_secs(),
+        Err(_) => 0u64,
     }
 }

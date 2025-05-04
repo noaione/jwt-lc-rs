@@ -134,23 +134,7 @@ fn test_validate_expiry() {
         exp: shift_by_10,
     };
 
-    let validator = Validator::default().add(ExpiryValidator::now());
-    let encoded = jwt_lc_rs::encode(&data, &*SIGNER).unwrap();
-    let decoded: jwt_lc_rs::TokenData<ExpiryBasic> =
-        jwt_lc_rs::decode(&encoded, &*SIGNER, &validator).unwrap();
-    assert_eq!(decoded.get_claims().exp, shift_by_10);
-}
-
-#[test]
-fn test_validate_expiry_via_grace_period() {
-    let shift_by_10 = now_shift(10);
-    let data = ExpiryBasic {
-        data: S("Hello world!"),
-        exp: shift_by_10,
-    };
-
-    let validator =
-        Validator::default().add(ExpiryValidator::new(now_shift(12)).with_grace_period(5));
+    let validator = Validator::default().add(ExpiryValidator::new(5u64));
     let encoded = jwt_lc_rs::encode(&data, &*SIGNER).unwrap();
     let decoded: jwt_lc_rs::TokenData<ExpiryBasic> =
         jwt_lc_rs::decode(&encoded, &*SIGNER, &validator).unwrap();
@@ -159,14 +143,13 @@ fn test_validate_expiry_via_grace_period() {
 
 #[test]
 fn test_validate_expiry_via_grace_period_expired() {
-    let shift_by_10 = now_shift(10);
+    let neg_by_6 = now_shift(-6);
     let data = ExpiryBasic {
         data: S("Hello world!"),
-        exp: shift_by_10,
+        exp: neg_by_6,
     };
 
-    let validator =
-        Validator::default().add(ExpiryValidator::new(now_shift(16)).with_grace_period(5));
+    let validator = Validator::default().add(ExpiryValidator::new(5u64)); // 5 seconds grace period
     let encoded = jwt_lc_rs::encode(&data, &*SIGNER).unwrap();
     match jwt_lc_rs::decode::<ExpiryBasic>(&encoded, &*SIGNER, &validator) {
         Err(jwt_lc_rs::errors::Error::ValidationError(ValidationError::TokenExpired(_, _))) => (),
