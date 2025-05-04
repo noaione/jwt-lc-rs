@@ -169,6 +169,11 @@ impl ExpiryValidator {
             grace_period: grace_period.into(),
         }
     }
+
+    /// Create a new [`ExpiryValidator`] with zero grace period
+    pub fn zero() -> Self {
+        Self::new(0u64)
+    }
 }
 
 impl Validation for ExpiryValidator {
