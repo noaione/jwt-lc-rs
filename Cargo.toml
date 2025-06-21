@@ -12,7 +12,7 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-aws-lc-rs = { version = "1.13.0", default-features = false, features = [
+aws-lc-rs = { version = "1.13.1", default-features = false, features = [
     "alloc",
     "fips",
     "ring-io",
