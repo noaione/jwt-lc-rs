@@ -1,6 +1,6 @@
 [package]
 name = "jwt-lc-rs"
-version = "0.1.1-dev"
+version = "0.1.2-dev"
 edition = "2021"
 authors = ["noaione <noaione@n4o.xyz>"]
 license = "Apache-2.0 OR MIT"

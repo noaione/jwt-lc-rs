@@ -31,9 +31,7 @@ pub fn extract_first_bitstring(
     for asn1_entry in asn1.iter() {
         match asn1_entry {
             simple_asn1::ASN1Block::Sequence(_, entries) => {
-                if let Ok(result) = extract_first_bitstring(entries) {
-                    return Ok(result);
-                }
+                return extract_first_bitstring(&entries);
             }
             simple_asn1::ASN1Block::BitString(_, _, value) => {
                 return Ok(value.as_ref());

@@ -105,11 +105,7 @@ fn classify_pem(asn1: &[simple_asn1::ASN1Block]) -> Option<Classification> {
 
     for asn1_entry in asn1.iter() {
         match asn1_entry {
-            simple_asn1::ASN1Block::Sequence(_, entries) => {
-                if let Some(classification) = classify_pem(entries) {
-                    return Some(classification);
-                }
-            }
+            simple_asn1::ASN1Block::Sequence(_, entries) => return classify_pem(&entries),
             simple_asn1::ASN1Block::ObjectIdentifier(_, oid) => {
                 if oid == ec_public_key_oid {
                     return Some(Classification::Ec);
